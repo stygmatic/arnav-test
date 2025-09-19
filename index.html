@@ -4,8 +4,10 @@
     <meta charset="utf-8" />
     <title>Arnav Asthana — Photography</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Tailwind for quick layout utilities -->
+
+    <!-- Tailwind for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
       /* Base */
       html, body { scroll-behavior:smooth; margin:0; height:100%; overflow-x:hidden; }
@@ -14,8 +16,8 @@
       button { font: inherit; color: inherit; background:none; border:0; cursor:pointer; }
 
       /* Scroll snap */
-      section { scroll-snap-align: start; }
-      .snap-container { scroll-snap-type: y mandatory; height:100vh; overflow-y:auto; scroll-padding-top: 3.5rem; }
+      section { scroll-snap-align:start; }
+      .snap-container { scroll-snap-type:y mandatory; height:100vh; overflow-y:auto; scroll-padding-top:3.5rem; }
 
       /* Animations */
       @keyframes fadeIn { from{opacity:0} to{opacity:1} }
@@ -31,7 +33,7 @@
       .card{ transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s }
       .card:hover{ transform:scale(1.05) rotate(1deg); box-shadow:0 15px 40px rgba(0,0,0,.4) }
 
-      /* Reveal-on-view (animate inner child so hover still works) */
+      /* Reveal-on-view */
       .reveal-seq > * .anim{ opacity:0; transform:translateY(10px) }
       .reveal-seq.revealed > * .anim{ animation: fadeUp .6s ease forwards }
 
@@ -39,7 +41,7 @@
       .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) }
     </style>
 
-    <!-- React + ReactDOM + Babel (for GitHub Pages single-file) -->
+    <!-- React + ReactDOM + Babel (single-file setup for GH Pages) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -48,12 +50,11 @@
     <div id="root"></div>
 
     <script type="text/babel" data-presets="react">
-      const { useEffect, useMemo, useState, useRef } = React;
+      const { useEffect, useMemo, useRef, useState } = React;
 
-      // Fallback placeholder for any failed image loads (neutral dark rectangle)
-      const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-
-      // ---------------- Manifest Loader ----------------
+      /* --------------------------------------------------
+       * Data / Manifest loader
+       * -------------------------------------------------- */
       const DEFAULT_LIBS = [
         { slug: "cars",        title: "Cars",        cover: "", photos: [] },
         { slug: "sports",      title: "Sports",      cover: "", photos: [] },
@@ -63,56 +64,63 @@
         { slug: "client-work", title: "Client Work", cover: "", photos: [] },
       ];
 
-      async function loadManifest() {
-        try {
-          const res = await fetch("cdn-manifest.json", { cache: "no-store" });
-          if (!res.ok) throw new Error("manifest not found");
+      // 1px transparent gif (safe placeholder)
+      const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+      async function loadManifest(){
+        try{
+          const res = await fetch('cdn-manifest.json', { cache:'no-store' });
+          if(!res.ok) throw new Error('manifest not found');
           const data = await res.json();
-          const hero = data.hero || "";
-          const libs = (data.libraries || []).map(l => ({
+          const hero = data.hero || '';
+          const libraries = (data.libraries || []).map(l => ({
             slug: l.slug,
             title: l.title,
-            cover: l.cover || (l.photos && l.photos[0]) || "",
+            cover: l.cover || (l.photos && l.photos[0]) || '',
             photos: Array.isArray(l.photos) ? l.photos : []
           }));
-          return { hero, libraries: libs };
-        } catch (e) {
-          console.warn("Using defaults — no/invalid cdn-manifest.json", e);
-          return { hero: "", libraries: DEFAULT_LIBS };
+          return { hero, libraries };
+        }catch(err){
+          console.warn('Using defaults — no/invalid cdn-manifest.json', err);
+          return { hero:'', libraries: DEFAULT_LIBS };
         }
       }
 
-      // ---------------- UI Helpers ----------------
-      const SITE_TITLE = "Arnav Asthana";
-      const cx = (...xs) => xs.filter(Boolean).join(" ");
+      /* --------------------------------------------------
+       * Helpers
+       * -------------------------------------------------- */
+      const SITE_TITLE = 'Arnav Asthana';
+      const cx = (...xs) => xs.filter(Boolean).join(' ');
 
-      function useRevealOnView(deps=[]) {
+      function useRevealOnView(deps=[]){
         useEffect(() => {
           const io = new IntersectionObserver((entries) => {
             entries.forEach(e => {
-              if (e.isIntersecting) e.target.classList.add("revealed");
-              else e.target.classList.remove("revealed");
+              if(e.isIntersecting) e.target.classList.add('revealed');
+              else e.target.classList.remove('revealed');
             });
           }, { threshold: 0.15 });
-          document.querySelectorAll(".reveal-seq").forEach(el => io.observe(el));
+          document.querySelectorAll('.reveal-seq').forEach(el => io.observe(el));
           return () => io.disconnect();
         }, deps);
       }
 
-      // ---------------- Components ----------------
+      /* --------------------------------------------------
+       * Components
+       * -------------------------------------------------- */
       function SplitTitle({ text, onFinished, play }){
-        const letters = useMemo(() => text.split(""), [text]);
+        const letters = useMemo(() => text.split(''), [text]);
         useEffect(() => {
-          if (!play) return;
-          const total = letters.length * 40 + 600;
+          if(!play) return;
+          const total = letters.length * 40 + 600; // ms
           const t = setTimeout(() => onFinished && onFinished(), total);
           return () => clearTimeout(t);
         }, [letters.length, onFinished, play]);
-        const nbsp = "\xa0";
+        const nbsp = '\xa0';
         return (
-          <h1 className="text-white text-[clamp(2.5rem,6vw,4.5rem)] font-light tracking-tight drop-shadow-md title">
+          <h1 className="text-white text-[clamp(2.5rem,6vw,4.5rem)] font-light tracking-tight drop-shadow-md">
             {letters.map((ch,i) => (
-              <span key={i} className={cx(play && "fade-up inline-block")} style={play?{animationDelay:`${i*40}ms`}:{opacity:1}}>{ch===" "?nbsp:ch}</span>
+              <span key={i} className={cx(play && 'fade-up inline-block')} style={play?{animationDelay:`${i*40}ms`}:{opacity:1}}>{ch===' '?nbsp:ch}</span>
             ))}
           </h1>
         );
@@ -120,16 +128,16 @@
 
       function TopNav({ visible, onNav }){
         const links = [
-          { label: "Portfolio", href: "#libraries" },
-          { label: "About", href: "#about" },
-          { label: "Contact", href: "#contact" },
+          { label:'Portfolio', href:'#libraries' },
+          { label:'About',     href:'#about'     },
+          { label:'Contact',   href:'#contact'   },
         ];
         return (
-          <nav className={cx("fixed top-0 left-0 right-0 z-40 border-b border-neutral-800 backdrop-blur-md bg-black/25", visible?"fade-down":"opacity-0")}> 
+          <nav className={cx('fixed top-0 left-0 right-0 z-40 border-b border-neutral-800 backdrop-blur-md bg-black/25', visible?'fade-down':'opacity-0')}>
             <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-              <a href="#hero" className="text-neutral-200 hover:text-white btn" onClick={(e)=>{e.preventDefault(); onNav("#hero");}}>{SITE_TITLE}</a>
+              <a href="#hero" className="text-neutral-200 hover:text-white btn" onClick={(e)=>{e.preventDefault(); onNav('#hero');}}>{SITE_TITLE}</a>
               <div className="flex items-center gap-2">
-                {links.map(l=> (
+                {links.map(l => (
                   <a key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg hover:bg-neutral-900 text-neutral-200 btn" onClick={(e)=>{e.preventDefault(); onNav(l.href);}}>{l.label}</a>
                 ))}
               </div>
@@ -141,12 +149,12 @@
       function Hero({ play, onIntroDone, hero }){
         return (
           <header className="relative h-full w-full flex items-center justify-center">
-            <div className="absolute inset-0" style={{ backgroundImage: hero?`url(${hero})`:"none", backgroundSize:"cover", backgroundPosition:"center", backgroundColor: hero?"transparent":"#111" }} />
+            <div className="absolute inset-0" style={{ backgroundImage: hero?`url(${hero})`:'none', backgroundSize:'cover', backgroundPosition:'center', backgroundColor: hero?'transparent':'#111' }} />
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10 text-center px-6">
               <SplitTitle text={SITE_TITLE} onFinished={onIntroDone} play={play} />
-              <p className={cx("mt-4 text-neutral-300 max-w-xl mx-auto", play&&"fade-up")} style={play?{animationDelay:"600ms"}:undefined}>Photography Portfolio</p>
-              <a href="#libraries" className={cx("inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700 btn", play&&"fade-up")} style={play?{animationDelay:"1000ms"}:undefined} onClick={(e)=>{e.preventDefault(); document.getElementById("libraries")?.scrollIntoView({behavior:"smooth", block:"start"});}}>View Work</a>
+              <p className={cx('mt-4 text-neutral-300 max-w-xl mx-auto', play&&'fade-up')} style={play?{animationDelay:'600ms'}:undefined}>Photography Portfolio</p>
+              <a href="#libraries" className={cx('inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700 btn', play&&'fade-up')} style={play?{animationDelay:'1000ms'}:undefined} onClick={(e)=>{e.preventDefault(); document.getElementById('libraries')?.scrollIntoView({behavior:'smooth', block:'start'});}}>View Work</a>
             </div>
             <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
           </header>
@@ -159,23 +167,13 @@
             <h2 className="text-2xl md:text-3xl font-medium fade-down">Libraries</h2>
             <p className="text-neutral-400 mt-2 fade-up">Browse collections by subject or project.</p>
 
-            {/* Use flex so rows ALWAYS center, regardless of how many items are on the last row */}
+            {/* Always-centered rows */}
             <div className="mt-6 md:mt-10 flex flex-wrap justify-center gap-4 md:gap-6 reveal-seq">
-              {libraries.map((lib,i)=> (
-                <button
-                  key={lib.slug}
-                  data-testid="lib-card"
-                  className="card rounded-2xl overflow-hidden text-center outline-none bg-neutral-900 w-[300px] sm:w-[340px] md:w-[380px]"
-                  onClick={()=> onOpen(lib.slug)}
-                >
+              {libraries.map((lib,i) => (
+                <button key={lib.slug} data-testid="lib-card" className="card rounded-2xl overflow-hidden text-center outline-none bg-neutral-900 w-[300px] sm:w-[340px] md:w-[380px]" onClick={()=> onOpen(lib.slug)}>
                   <div className="anim" style={{animationDelay:`${i*80}ms`}}>
                     <div className="relative aspect-[16/13] w-full bg-neutral-800">
-                      <img
-                        src={lib.cover || IMG_PLACEHOLDER}
-                        alt={`${lib.title} cover`}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        onError={(e)=>{ e.currentTarget.src = IMG_PLACEHOLDER; }}
-                      />
+                      <img src={lib.cover || IMG_PLACEHOLDER} alt={`${lib.title} cover`} className="absolute inset-0 w-full h-full object-cover" onError={(e)=>{ e.currentTarget.src = IMG_PLACEHOLDER; }} />
                     </div>
                     <div className="p-2 md:p-3">
                       <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
@@ -184,34 +182,6 @@
                   </div>
                 </button>
               ))}
-            </div>
-          </div>
-        );
-      }
-                  data-testid="lib-card"
-                  className="card rounded-2xl overflow-hidden text-center outline-none bg-neutral-900 max-w-[420px] w-full"
-                  onClick={()=> onOpen(lib.slug)}
-                >
-                  <div className="anim" style={{animationDelay:`${i*80}ms`}}>
-                    <div className="relative aspect-[16/13] w-full bg-neutral-800">
-                      <img
-                        src={lib.cover || IMG_PLACEHOLDER}
-                        alt={`${lib.title} cover`}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        onError={(e)=>{ e.currentTarget.src = IMG_PLACEHOLDER; }}
-                      />
-                    </div>
-                    <div className="p-2 md:p-3">
-                      <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
-                      <div className="text-neutral-400 text-[11px] md:text-xs">{lib.photos.length} photos</div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      }
             </div>
           </div>
         );
@@ -221,7 +191,7 @@
         return (
           <main className="fade-in">
             <header className="relative h-[60svh] w-full flex items-center justify-center text-center">
-              <div className="absolute inset-0" style={{ backgroundImage: lib.cover?`url(${lib.cover})`:"none", backgroundSize:"cover", backgroundPosition:"center", backgroundColor: lib.cover?"transparent":"#111" }} />
+              <div className="absolute inset-0" style={{ backgroundImage: lib.cover?`url(${lib.cover})`:'none', backgroundSize:'cover', backgroundPosition:'center', backgroundColor: lib.cover?'transparent':'#111' }} />
               <div className="absolute inset-0 bg-black/40" />
               <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 w-full">
                 <h1 className="text-white text-4xl md:text-5xl font-light fade-down">{lib.title}</h1>
@@ -232,7 +202,7 @@
             <section className="bg-neutral-950 text-center">
               <div className="max-w-6xl mx-auto px-4 py-16">
                 <div className="gallery">
-                  {lib.photos.map((src,i)=> (
+                  {lib.photos.map((src,i) => (
                     <figure key={src} className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center fade-up" style={{animationDelay:`${i*30}ms`}}>
                       <img src={src || IMG_PLACEHOLDER} alt={`${lib.title} ${i+1}`} className="w-full h-auto rounded-md object-cover" onError={(e)=>{ e.currentTarget.src = IMG_PLACEHOLDER; }} />
                       <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i+1}</figcaption>
@@ -277,7 +247,9 @@
         );
       }
 
-      // ---------------- App ----------------
+      /* --------------------------------------------------
+       * App
+       * -------------------------------------------------- */
       function App(){
         const [route, setRoute] = useState('home');
         const [hero, setHero] = useState('');
@@ -287,15 +259,17 @@
 
         const heroRef = useRef(null), libsRef = useRef(null), aboutRef = useRef(null), contactRef = useRef(null);
 
-        useEffect(()=>{ // load manifest once
-          loadManifest().then(({hero, libraries}) => { setHero(hero); setLibraries(libraries.length?libraries:DEFAULT_LIBS); });
-        },[]);
+        useEffect(() => { // load manifest once
+          loadManifest().then(({ hero, libraries }) => {
+            setHero(hero);
+            setLibraries(libraries.length ? libraries : DEFAULT_LIBS);
+          });
+        }, []);
 
-        // reveal observers (replay on route changes)
         useRevealOnView([route]);
 
         const isLibRoute = route.startsWith('lib:');
-        const currentLib = isLibRoute ? libraries.find(l => `lib:${l.slug}`===route) : null;
+        const currentLib = isLibRoute ? libraries.find(l => `lib:${l.slug}` === route) : null;
 
         const handleIntroDone = () => {
           setNavVisible(true);
@@ -304,18 +278,18 @@
 
         const scrollToHash = (hash) => {
           const map = { '#hero': heroRef, '#libraries': libsRef, '#about': aboutRef, '#contact': contactRef };
-          const el = map[hash]?.current; if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+          const el = map[hash]?.current; if(el) el.scrollIntoView({ behavior:'smooth', block:'start' });
         };
 
-        // smoke tests
-        useEffect(()=>{
+        // smoke tests (non-fatal)
+        useEffect(() => {
           console.assert(document.querySelector('nav'), 'Top nav should render');
           if(route==='home'){
-            ['hero','libraries','about','contact'].forEach(id=> console.assert(document.getElementById(id), `#${id} exists`));
+            ['hero','libraries','about','contact'].forEach(id => console.assert(document.getElementById(id), `#${id} exists`));
             const cards = document.querySelectorAll('[data-testid="lib-card"]');
             console.assert(cards.length === libraries.length, `cards=${cards.length} libs=${libraries.length}`);
           }
-        },[route,libraries.length]);
+        }, [route, libraries.length]);
 
         return (
           <div className="min-h-screen bg-neutral-950">
@@ -323,9 +297,9 @@
 
             {isLibRoute ? (
               currentLib ? (
-                <LibraryPage lib={currentLib} onBack={()=> setRoute('home')} />
+                <LibraryPage lib={currentLib} onBack={() => setRoute('home')} />
               ) : (
-                <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">Not found. <button className="btn underline" onClick={()=>setRoute('home')}>Back</button></main>
+                <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">Not found. <button className="btn underline" onClick={() => setRoute('home')}>Back</button></main>
               )
             ) : (
               <div className="snap-container">
@@ -335,7 +309,7 @@
                 <section id="libraries" ref={libsRef} className="min-h-screen flex items-center justify-center">
                   <div className="w-full" data-testid="libraries">
                     <div className="text-center w-full">
-                      <LibrariesGrid libraries={libraries} onOpen={(slug)=> setRoute(`lib:${slug}`)} />
+                      <LibrariesGrid libraries={libraries} onOpen={(slug) => setRoute(`lib:${slug}`)} />
                     </div>
                   </div>
                 </section>
@@ -347,14 +321,14 @@
         );
       }
 
-      try {
+      // Mount app (with a guard to surface errors visibly if anything breaks)
+      try{
         ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-      } catch (err) {
+      }catch(err){
         const pre = document.createElement('pre');
         pre.style.position='fixed'; pre.style.inset='0'; pre.style.background='#0a0a0a'; pre.style.color='#f8fafc';
         pre.style.padding='24px'; pre.style.margin='0'; pre.style.zIndex='99999'; pre.style.whiteSpace='pre-wrap';
-        pre.textContent = 'Something went wrong booting the page.
-' + (err && err.message ? err.message : String(err));
+        pre.textContent = 'Something went wrong booting the page.\n' + (err && err.message ? err.message : String(err));
         document.body.appendChild(pre);
       }
     </script>
