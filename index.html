@@ -1,0 +1,271 @@
+// Single‑file React portfolio site (dark, integrated motion, libraries)
+// Landing screen animations only on first open; other sections replay on revisit
+
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+
+const SITE_TITLE = "Arnav Asthana";
+const HERO_IMAGE_SRC = "/hero.jpg";
+
+const COLORS = {
+  bg: "bg-neutral-950",
+  text: "text-neutral-50",
+  subtext: "text-neutral-400",
+  border: "border-neutral-800",
+  card: "bg-neutral-900",
+};
+
+const INITIAL_LIBRARIES = [
+  { slug: "cars", title: "Cars", cover: "/libraries/cars/cover.jpg", photos: ["/libraries/cars/1.jpg"] },
+  { slug: "sports", title: "Sports", cover: "/libraries/sports/cover.jpg", photos: ["/libraries/sports/1.jpg"] },
+  { slug: "landscapes", title: "Landscapes", cover: "/libraries/landscapes/cover.jpg", photos: ["/libraries/landscapes/1.jpg"] },
+  { slug: "abstract", title: "Abstract", cover: "/libraries/abstract/cover.jpg", photos: ["/libraries/abstract/1.jpg"] },
+  { slug: "scenery", title: "Scenery", cover: "/libraries/scenery/cover.jpg", photos: ["/libraries/scenery/1.jpg"] },
+  { slug: "client-work", title: "Client Work", cover: "/libraries/client-work/cover.jpg", photos: ["/libraries/client-work/1.jpg"] },
+];
+
+function classNames(...xs) { return xs.filter(Boolean).join(" "); }
+
+// ---------- Split Title (animated once on first load) ----------
+function SplitTitle({ text, onFinished, play }) {
+  const letters = text.split("");
+  const variants = {
+    hidden: { opacity: 0, y: 8 },
+    show: (i) => ({ opacity: 1, y: 0, transition: { delay: 0.04 * i, duration: 0.5 } }),
+  };
+  useEffect(() => {
+    if (!play) return;
+    const total = letters.length * 0.04 + 0.5;
+    const t = setTimeout(() => onFinished && onFinished(), total * 1000);
+    return () => clearTimeout(t);
+  }, [letters.length, onFinished, play]);
+  const NBSP = "\xa0";
+  return (
+    <h1 className="text-white text-5xl md:text-7xl font-light tracking-tight drop-shadow-md">
+      {letters.map((ch, i) => (
+        <motion.span
+          key={i}
+          custom={i}
+          variants={variants}
+          initial={play ? "hidden" : "show"}
+          animate={play ? "show" : "show"}
+        >
+          {ch === " " ? NBSP : ch}
+        </motion.span>
+      ))}
+    </h1>
+  );
+}
+
+// ---------- Top Navigation ----------
+function TopNav({ visible }) {
+  const links = [
+    { label: "Portfolio", href: "#libraries" },
+    { label: "About", href: "#about" },
+    { label: "Contact", href: "#contact" },
+  ];
+  return (
+    <motion.nav initial={{ opacity: 0 }} animate={{ opacity: visible ? 1 : 0 }} transition={{ duration: 0.5 }} className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-black/25 border-b border-neutral-800">
+      <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
+        <motion.a whileHover={{ scale: 1.05 }} href="#hero" className="text-neutral-200 font-medium hover:text-white transition">{SITE_TITLE}</motion.a>
+        <div className="flex items-center gap-2">
+          {links.map((l) => (
+            <motion.a whileHover={{ scale: 1.05 }} key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg hover:bg-neutral-900 text-neutral-200">{l.label}</motion.a>
+          ))}
+        </div>
+      </div>
+    </motion.nav>
+  );
+}
+
+// ---------- App ----------
+export default function App() {
+  const [route, setRoute] = useState("home");
+  const [libraries, setLibraries] = useState(INITIAL_LIBRARIES);
+  const [navVisible, setNavVisible] = useState(false);
+  const [firstLoad, setFirstLoad] = useState(true);
+
+  const libsRef = useRef(null);
+  const aboutRef = useRef(null);
+  const contactRef = useRef(null);
+
+  useEffect(() => {
+    // Global styles: Times New Roman + scroll-snap + header offset
+    const styleEl = document.createElement("style");
+    styleEl.innerHTML = `html, body {scroll-behavior:smooth; font-family: \"Times New Roman\", Times, serif; margin:0; height:100%; overflow-x:hidden;} section {scroll-snap-align: start;} .snap-container {scroll-snap-type: y mandatory; height:100vh; overflow-y:scroll; scroll-padding-top: 3.5rem;}`;
+    document.head.appendChild(styleEl);
+
+    // Runtime helpers for adding/replacing libraries later
+    window.addLibrary = (lib) => setLibraries((prev) => [...prev, lib]);
+    window.replaceLibraries = (next) => setLibraries(next);
+
+    // Lightweight runtime tests
+    setTimeout(() => {
+      console.assert(document.querySelector('nav'), 'TopNav <nav> should exist');
+      console.assert(document.getElementById('libraries'), '#libraries should exist');
+      console.assert(document.getElementById('about'), '#about should exist');
+      console.assert(document.getElementById('contact'), '#contact should exist');
+      const cards = document.querySelectorAll('[data-testid="lib-card"]');
+      console.assert(cards.length === libraries.length, `Expected ${libraries.length} library cards, found ${cards.length}`);
+      console.assert("\xa0".length === 1, 'NBSP must be one character');
+    }, 0);
+
+    return () => {
+      styleEl.remove();
+      delete window.addLibrary;
+      delete window.replaceLibraries;
+    };
+  }, [libraries.length]);
+
+  const isLibRoute = route.startsWith("lib:");
+  const currentLib = isLibRoute ? libraries.find((l) => `lib:${l.slug}` === route) : null;
+
+  return (
+    <div className={classNames(COLORS.bg, "min-h-screen selection:bg-neutral-800 selection:text-white")}> 
+      {!isLibRoute && <TopNav visible={navVisible} />}
+
+      <AnimatePresence mode="wait">
+        {isLibRoute ? (
+          <motion.div key={route} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {currentLib ? (<LibraryPage lib={currentLib} onBack={() => setRoute("home")} />) : (<NotFound onBack={() => setRoute("home")} />)}
+          </motion.div>
+        ) : (
+          <motion.div key="stack" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="snap-container">
+              <section id="hero" className="snap-start h-screen flex items-center justify-center">
+                <Hero play={firstLoad} onIntroDone={() => { setNavVisible(true); setFirstLoad(false); }} />
+              </section>
+
+              <section id="libraries" ref={libsRef} className="snap-start min-h-screen flex items-center justify-center">
+                <LibrariesGrid libraries={libraries} onOpen={(slug) => setRoute(`lib:${slug}`)} />
+              </section>
+
+              <section id="about" ref={aboutRef} className="snap-start min-h-screen flex items-center justify-center">
+                <About />
+              </section>
+
+              <section id="contact" ref={contactRef} className="snap-start min-h-screen flex items-center justify-center">
+                <Contact />
+              </section>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ---------- Hero ----------
+function Hero({ onIntroDone, play }) {
+  return (
+    <header className="relative h-full w-full flex items-center justify-center">
+      <div className="absolute inset-0" style={{ backgroundImage: `url(${HERO_IMAGE_SRC})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative z-10 text-center px-6">
+        <SplitTitle text={SITE_TITLE} onFinished={onIntroDone} play={play} />
+        <motion.p initial={{ opacity: play ? 0 : 1, y: play ? 8 : 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: play ? 0.6 : 0, duration: 0.6 }} className="mt-4 text-neutral-300 max-w-xl mx-auto">Photography Portfolio</motion.p>
+        <motion.a whileHover={{ scale: 1.05 }} href="#libraries" initial={{ opacity: play ? 0 : 1, y: play ? 12 : 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: play ? 1.0 : 0, duration: 0.6 }} className="inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700">View Work</motion.a>
+      </div>
+      <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
+    </header>
+  );
+}
+
+// ---------- Libraries Grid ----------
+function LibrariesGrid({ libraries, onOpen }) {
+  const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } } };
+  const item = () => ({ hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0, transition: { duration: 0.6 } } });
+  return (
+    <div className="text-center w-full max-w-6xl px-4">
+      <h2 className={classNames("text-2xl md:text-3xl font-medium", COLORS.text)}>Libraries</h2>
+      <p className={classNames(COLORS.subtext, "mt-2")}>Browse collections by subject or project.</p>
+      <motion.div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" variants={container} initial="hidden" whileInView="show" viewport={{ once: false, margin: "-10%" }}>
+        {libraries.map((lib) => (
+          <motion.button key={lib.slug} data-testid="lib-card" onClick={() => onOpen(lib.slug)} variants={item()} whileHover={{ scale: 1.05, rotate: 1 }} whileFocus={{ scale: 1.05, rotate: 1 }} whileTap={{ scale: 0.99 }} transition={{ type: "spring", stiffness: 260, damping: 20, mass: 0.2 }} className={classNames("group relative rounded-2xl overflow-hidden text-center outline-none","hover:shadow-2xl hover:shadow-black/40",COLORS.card)}>
+            <div className="aspect-[4/3] w-full bg-neutral-800" style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+            <div className="p-3">
+              <div className="text-neutral-100 text-base">{lib.title}</div>
+              <div className="text-neutral-400 text-xs">{lib.photos.length} photos</div>
+            </div>
+            <div className="absolute inset-0 ring-0 group-hover:ring-2 ring-neutral-300 transition" />
+          </motion.button>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+// ---------- Library Page ----------
+function LibraryPage({ lib, onBack }) {
+  return (
+    <main>
+      <header className="relative h-[60svh] w-full flex items-center justify-center text-center">
+        <div className="absolute inset-0" style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 w-full">
+          <h1 className="text-white text-4xl md:text-5xl font-light">{lib.title}</h1>
+          <p className="text-neutral-300 mt-2">{lib.photos.length} works</p>
+          <div className="mt-6">
+            <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="inline-flex items-center gap-2 text-neutral-200 hover:text-white"><ArrowLeft className="w-5 h-5" /> Back</motion.button>
+          </div>
+        </div>
+      </header>
+      <section className="bg-neutral-950 text-center">
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <div className="grid gap-8 md:gap-10 justify-center" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))" }}>
+            {lib.photos.map((src, i) => (
+              <motion.figure key={src} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.6, delay: 0.03 * i }} className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center">
+                <img src={src} alt={`${lib.title} ${i + 1}`} className="w-full h-auto rounded-md object-cover" />
+                <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i + 1}</figcaption>
+              </motion.figure>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function NotFound({ onBack }) {
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">
+      <p>Library not found.</p>
+      <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="mt-6 px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white">Back to Home</motion.button>
+    </main>
+  );
+}
+
+// ---------- About ----------
+function About() {
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-28 text-center">
+      <h2 className={classNames("text-2xl md:text-3xl font-medium", COLORS.text)}>About</h2>
+      <p className={classNames(COLORS.subtext, "mt-4 whitespace-pre-wrap min-h-[4em]")}>I’m {SITE_TITLE}, a photographer who loves capturing stories in landscapes, cities, and people. This site showcases selected work.</p>
+    </main>
+  );
+}
+
+// ---------- Contact ----------
+function Contact() {
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-28 text-center">
+      <h2 className={classNames("text-2xl md:text-3xl font-medium", COLORS.text)}>Contact</h2>
+      <p className={classNames(COLORS.subtext, "mt-4")}>Reach out for shoots, licensing, or collaborations.</p>
+      <div className="mt-8 grid gap-3 justify-center">
+        <InfoRow label="Email" value={<a className="underline" href="mailto:hello@example.com">hello@example.com</a>} />
+        <InfoRow label="Instagram" value={<a className="underline" href="#" target="_blank" rel="noreferrer">@yourhandle</a>} />
+        <InfoRow label="Location" value="Your City, Country" />
+      </div>
+    </main>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="text-neutral-500 text-sm uppercase tracking-wider">{label}</div>
+      <div className="text-neutral-200">{value}</div>
+    </div>
+  );
+}
