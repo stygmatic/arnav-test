@@ -51,7 +51,7 @@
       const { useEffect, useMemo, useState, useRef } = React;
 
       // Fallback placeholder for any failed image loads (neutral dark rectangle)
-      const IMG_PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="%231a1a1a"/></svg>';
+      const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
       // ---------------- Manifest Loader ----------------
       const DEFAULT_LIBS = [
@@ -347,7 +347,16 @@
         );
       }
 
-      ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+      try {
+        ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+      } catch (err) {
+        const pre = document.createElement('pre');
+        pre.style.position='fixed'; pre.style.inset='0'; pre.style.background='#0a0a0a'; pre.style.color='#f8fafc';
+        pre.style.padding='24px'; pre.style.margin='0'; pre.style.zIndex='99999'; pre.style.whiteSpace='pre-wrap';
+        pre.textContent = 'Something went wrong booting the page.
+' + (err && err.message ? err.message : String(err));
+        document.body.appendChild(pre);
+      }
     </script>
   </body>
 </html>
