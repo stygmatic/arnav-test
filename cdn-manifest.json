@@ -1,21 +1,29 @@
 {
-  "hero": "https://your-cdn.example.com/hero.jpg",
+  "hero": "https://hc-cdn.hel1.your-objectstorage.com/s/v3/d12773ab3c431dab52a34aefc9d1a71a0b9ccf82_hero.jpg",
   "libraries": [
     {
       "slug": "cars",
       "title": "Cars",
-      "cover": "https://your-cdn.example.com/cars/cover.jpg",
+      "cover": "https://hc-cdn.hel1.your-objectstorage.com/s/v3/cars_cover.jpg",
       "photos": [
-        "https://your-cdn.example.com/cars/1.jpg",
-        "https://your-cdn.example.com/cars/2.jpg"
+        "https://hc-cdn.hel1.your-objectstorage.com/s/v3/cars_1.jpg",
+        "https://hc-cdn.hel1.your-objectstorage.com/s/v3/cars_2.jpg"
       ]
     },
     {
       "slug": "sports",
       "title": "Sports",
-      "cover": "https://your-cdn.example.com/sports/cover.jpg",
+      "cover": "https://hc-cdn.hel1.your-objectstorage.com/s/v3/sports_cover.jpg",
       "photos": [
-        "https://your-cdn.example.com/sports/1.jpg"
+        "https://hc-cdn.hel1.your-objectstorage.com/s/v3/sports_1.jpg"
+      ]
+    },
+    {
+      "slug": "landscapes",
+      "title": "Landscapes",
+      "cover": "https://hc-cdn.hel1.your-objectstorage.com/s/v3/landscapes_cover.jpg",
+      "photos": [
+        "https://hc-cdn.hel1.your-objectstorage.com/s/v3/landscapes_1.jpg"
       ]
     }
   ]
