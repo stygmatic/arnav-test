@@ -1,0 +1,44 @@
+{
+  "hero": "https://hc-cdn.hel1.your-objectstorage.com/s/v3/d12773ab3c431dab52a34aefc9d1a71a0b9ccf82_hero.jpg",
+  "libraries": [
+    {
+      "slug": "cars",
+      "title": "Cars",
+      "cover": "https://YOUR-CDN/cars/cover.jpg",
+      "photos": [
+        "https://YOUR-CDN/cars/1.jpg",
+        "https://YOUR-CDN/cars/2.jpg"
+      ]
+    },
+    {
+      "slug": "sports",
+      "title": "Sports",
+      "cover": "https://YOUR-CDN/sports/cover.jpg",
+      "photos": ["https://YOUR-CDN/sports/1.jpg"]
+    },
+    {
+      "slug": "landscapes",
+      "title": "Landscapes",
+      "cover": "https://YOUR-CDN/landscapes/cover.jpg",
+      "photos": ["https://YOUR-CDN/landscapes/1.jpg"]
+    },
+    {
+      "slug": "abstract",
+      "title": "Abstract",
+      "cover": "https://YOUR-CDN/abstract/cover.jpg",
+      "photos": ["https://YOUR-CDN/abstract/1.jpg"]
+    },
+    {
+      "slug": "scenery",
+      "title": "Scenery",
+      "cover": "https://YOUR-CDN/scenery/cover.jpg",
+      "photos": ["https://YOUR-CDN/scenery/1.jpg"]
+    },
+    {
+      "slug": "client-work",
+      "title": "Client Work",
+      "cover": "https://YOUR-CDN/client-work/cover.jpg",
+      "photos": ["https://YOUR-CDN/client-work/1.jpg"]
+    }
+  ]
+}
