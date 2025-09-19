@@ -4,244 +4,86 @@
     <meta charset="utf-8" />
     <title>Arnav Asthana — Photography</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Tailwind (CDN) -->
+    <!-- Tailwind for quick layout utilities -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* Base */
       html, body { scroll-behavior:smooth; margin:0; height:100%; overflow-x:hidden; }
       body { font-family: "Times New Roman", Times, serif; background:#0a0a0a; color:#fafafa; }
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; color: inherit; background:none; border:0; cursor:pointer; }
+
       /* Scroll snap */
       section { scroll-snap-align: start; }
-      .snap-container { scroll-snap-type: y mandatory; height:100vh; overflow-y:scroll; scroll-padding-top: 3.5rem; }
-      /* Keyframes */
-      @keyframes fadeIn    { from {opacity:0} to {opacity:1} }
-      @keyframes fadeUp    { from {opacity:0; transform:translateY(10px)} to {opacity:1; transform:translateY(0)} }
-      @keyframes fadeDown  { from {opacity:0; transform:translateY(-10px)} to {opacity:1; transform:translateY(0)} }
-      /* Helpers */
-      .animate-fadeIn  { animation: fadeIn .6s ease forwards }
-      .animate-fadeUp  { animation: fadeUp .6s ease forwards }
-      .animate-fadeDown{ animation: fadeDown .6s ease forwards }
-      .reveal-seq > *  { opacity:0; transform:translateY(10px) }
-      .reveal-seq.revealed > * { animation: fadeUp .6s ease forwards }
-      .btn            { transition:transform .18s ease, background-color .18s ease, color .18s ease }
-      .btn:hover      { transform:scale(1.05) }
-      .card           { transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s }
-      .card:hover     { transform:scale(1.05) rotate(1deg) }
-      /* Utility for page fade */
-      .page-enter     { opacity:0 }
-      .page-enter-active{ animation: fadeIn .4s ease forwards }
+      .snap-container { scroll-snap-type: y mandatory; height:100vh; overflow-y:auto; scroll-padding-top: 3.5rem; }
+
+      /* Animations */
+      @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+      @keyframes fadeUp { from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)} }
+      @keyframes fadeDown { from{opacity:0; transform:translateY(-12px)} to{opacity:1; transform:translateY(0)} }
+      .fade-in{ animation:fadeIn .5s ease forwards }
+      .fade-up{ animation:fadeUp .6s ease forwards }
+      .fade-down{ animation:fadeDown .6s ease forwards }
+
+      /* Hover micro-interactions */
+      .btn{ transition:transform .18s ease, background-color .18s ease, color .18s ease }
+      .btn:hover{ transform:scale(1.05) }
+      .card{ transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s }
+      .card:hover{ transform:scale(1.05) rotate(1deg); box-shadow:0 15px 40px rgba(0,0,0,.4) }
+
+      /* Reveal-on-view (animate inner child so hover still works) */
+      .reveal-seq > * .anim{ opacity:0; transform:translateY(10px) }
+      .reveal-seq.revealed > * .anim{ animation: fadeUp .6s ease forwards }
+
+      /* Gallery */
+      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) }
     </style>
-    <!-- React + ReactDOM (UMD) + Babel -->
+
+    <!-- React + ReactDOM + Babel (for GitHub Pages single-file) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   </head>
   <body>
-    <noscript style="color:white;position:fixed;inset:0;display:grid;place-items:center;">
-      This site needs JavaScript enabled.
-    </noscript>
     <div id="root"></div>
 
     <script type="text/babel" data-presets="react">
-      const { useEffect, useState } = React;
+      const { useEffect, useMemo, useState, useRef } = React;
 
-      // ---- Config / Data ----
-      const SITE_TITLE = "Arnav Asthana";
-      const HERO_IMAGE_SRC = "hero.jpg"; // relative path (GitHub Pages safe)
-
-      const INITIAL_LIBRARIES = [
-        { slug: "cars",        title: "Cars",        cover: "libraries/cars/cover.jpg",        photos: ["libraries/cars/1.jpg"] },
-        { slug: "sports",      title: "Sports",      cover: "libraries/sports/cover.jpg",      photos: ["libraries/sports/1.jpg"] },
-        { slug: "landscapes",  title: "Landscapes",  cover: "libraries/landscapes/cover.jpg",  photos: ["libraries/landscapes/1.jpg"] },
-        { slug: "abstract",    title: "Abstract",    cover: "libraries/abstract/cover.jpg",    photos: ["libraries/abstract/1.jpg"] },
-        { slug: "scenery",     title: "Scenery",     cover: "libraries/scenery/cover.jpg",     photos: ["libraries/scenery/1.jpg"] },
-        { slug: "client-work", title: "Client Work", cover: "libraries/client-work/cover.jpg", photos: ["libraries/client-work/1.jpg"] },
+      // ---------------- Manifest Loader ----------------
+      const DEFAULT_LIBS = [
+        { slug: "cars",        title: "Cars",        cover: "", photos: [] },
+        { slug: "sports",      title: "Sports",      cover: "", photos: [] },
+        { slug: "landscapes",  title: "Landscapes",  cover: "", photos: [] },
+        { slug: "abstract",    title: "Abstract",    cover: "", photos: [] },
+        { slug: "scenery",     title: "Scenery",     cover: "", photos: [] },
+        { slug: "client-work", title: "Client Work", cover: "", photos: [] },
       ];
 
+      async function loadManifest() {
+        try {
+          const res = await fetch("cdn-manifest.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("manifest not found");
+          const data = await res.json();
+          const hero = data.hero || "";
+          const libs = (data.libraries || []).map(l => ({
+            slug: l.slug,
+            title: l.title,
+            cover: l.cover || (l.photos && l.photos[0]) || "",
+            photos: Array.isArray(l.photos) ? l.photos : []
+          }));
+          return { hero, libraries: libs };
+        } catch (e) {
+          console.warn("Using defaults — no/invalid cdn-manifest.json", e);
+          return { hero: "", libraries: DEFAULT_LIBS };
+        }
+      }
+
+      // ---------------- UI Helpers ----------------
+      const SITE_TITLE = "Arnav Asthana";
       const cx = (...xs) => xs.filter(Boolean).join(" ");
 
-      // ---- Split Title (first load only) ----
-      function SplitTitle({ text, onFinished, play }) {
-        const letters = text.split("");
-        useEffect(() => {
-          if (!play) return;
-          const total = letters.length * 0.04 + 0.5;
-          const t = setTimeout(() => onFinished && onFinished(), total * 1000);
-          return () => clearTimeout(t);
-        }, [play, letters.length, onFinished]);
-
-        const NBSP = "\xa0";
-        return (
-          <h1 className="text-white text-5xl md:text-7xl font-light tracking-tight drop-shadow-md">
-            {letters.map((ch, i) => (
-              <span
-                key={i}
-                className={cx("inline-block", play ? "opacity-0 animate-fadeUp" : "")}
-                style={play ? { animationDelay: `${0.04 * i}s` } : undefined}
-              >
-                {ch === " " ? NBSP : ch}
-              </span>
-            ))}
-          </h1>
-        );
-      }
-
-      function TopNav({ visible }) {
-        const links = [
-          { label: "Portfolio", href: "#libraries" },
-          { label: "About",     href: "#about" },
-          { label: "Contact",   href: "#contact" },
-        ];
-        return (
-          <nav className={cx(
-            "fixed top-0 left-0 right-0 z-40 border-b border-neutral-800 backdrop-blur-md bg-black/25",
-            visible ? "animate-fadeDown" : "opacity-0"
-          )}>
-            <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-              <a href="#hero" className="text-neutral-200 hover:text-white transition btn">{SITE_TITLE}</a>
-              <div className="flex items-center gap-2">
-                {links.map(l => (
-                  <a key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg hover:bg-neutral-900 text-neutral-200 btn">{l.label}</a>
-                ))}
-              </div>
-            </div>
-          </nav>
-        );
-      }
-
-      function Hero({ onIntroDone, play }) {
-        return (
-          <header className="relative h-full w-full flex items-center justify-center">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url(${HERO_IMAGE_SRC})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }} />
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="relative z-10 text-center px-6">
-              <SplitTitle text={SITE_TITLE} onFinished={onIntroDone} play={play} />
-              <p className={cx("mt-4 text-neutral-300 max-w-xl mx-auto", play ? "opacity-0 animate-fadeUp" : "")}
-                 style={play ? { animationDelay: ".6s" } : undefined}>
-                Photography Portfolio
-              </p>
-              <a href="#libraries"
-                 className={cx("inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700 btn",
-                               play ? "opacity-0 animate-fadeUp" : "")}
-                 style={play ? { animationDelay: "1s" } : undefined}>
-                View Work
-              </a>
-            </div>
-            <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
-          </header>
-        );
-      }
-
-      function LibrariesGrid({ libraries, onOpen }) {
-        return (
-          <div className="text-center w-full max-w-5xl px-4">
-            <h2 className="text-2xl md:text-3xl font-medium animate-fadeDown">Libraries</h2>
-            <p className="text-neutral-400 mt-2 animate-fadeUp">Browse collections by subject or project.</p>
-            <div className="mt-6 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 reveal-seq">
-              {libraries.map((lib, i) => (
-                <button
-                  key={lib.slug}
-                  data-testid="lib-card"
-                  onClick={() => onOpen(lib.slug)}
-                  className="group card relative rounded-2xl overflow-hidden text-center outline-none bg-neutral-900"
-                  style={{ animationDelay: `${0.08 * i}s` }}
-                >
-                  <div className="aspect-[16/13] w-full bg-neutral-800"
-                       style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-                  <div className="p-2 md:p-3">
-                    <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
-                    <div className="text-neutral-400 text-[11px] md:text-xs">{lib.photos.length} photos</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      function LibraryPage({ lib, onBack }) {
-        return (
-          <main className="page-enter page-enter-active">
-            <header className="relative h-[60svh] w-full flex items-center justify-center text-center">
-              <div className="absolute inset-0" style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 w-full">
-                <h1 className="text-white text-4xl md:text-5xl font-light animate-fadeDown">{lib.title}</h1>
-                <p className="text-neutral-300 mt-2 animate-fadeUp">{lib.photos.length} works</p>
-                <div className="mt-6">
-                  <button onClick={onBack} className="inline-flex items-center gap-2 text-neutral-200 hover:text-white btn">
-                    <span aria-hidden="true">←</span> Back
-                  </button>
-                </div>
-              </div>
-            </header>
-            <section className="bg-neutral-950 text-center">
-              <div className="max-w-6xl mx-auto px-4 py-16">
-                <div className="grid gap-8 md:gap-10 justify-center" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))" }}>
-                  {lib.photos.map((src, i) => (
-                    <figure key={src}
-                            className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center opacity-0 animate-fadeUp"
-                            style={{ animationDelay: `${0.03 * i}s` }}>
-                      <img src={src} alt={`${lib.title} ${i + 1}`} className="w-full h-auto rounded-md object-cover" />
-                      <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i + 1}</figcaption>
-                    </figure>
-                  ))}
-                </div>
-              </div>
-            </section>
-          </main>
-        );
-      }
-
-      function About() {
-        return (
-          <main className="mx-auto max-w-3xl px-4 py-28 text-center">
-            <h2 className="text-2xl md:text-3xl font-medium animate-fadeDown">About</h2>
-            <p className="text-neutral-400 mt-4 whitespace-pre-wrap min-h-[4em] opacity-0 animate-fadeUp">
-              I’m {SITE_TITLE}, a photographer who loves capturing stories in landscapes, cities, and people. This site showcases selected work.
-            </p>
-          </main>
-        );
-      }
-
-      function Contact() {
-        return (
-          <main className="mx-auto max-w-3xl px-4 py-28 text-center">
-            <h2 className="text-2xl md:text-3xl font-medium animate-fadeDown">Contact</h2>
-            <p className="text-neutral-400 mt-4 opacity-0 animate-fadeUp">Reach out for shoots, licensing, or collaborations.</p>
-            <div className="mt-8 grid gap-3 justify-center reveal-seq">
-              <InfoRow label="Email" value={<a className="underline btn" href="mailto:hello@example.com">hello@example.com</a>} />
-              <InfoRow label="Instagram" value={<a className="underline btn" href="#" target="_blank" rel="noreferrer">@yourhandle</a>} />
-              <InfoRow label="Location" value="Your City, Country" />
-            </div>
-          </main>
-        );
-      }
-
-      function InfoRow({ label, value }) {
-        return (
-          <div className="flex flex-col items-center opacity-0" style={{ animationDelay: ".1s", animation: "fadeUp .6s ease forwards" }}>
-            <div className="text-neutral-500 text-sm uppercase tracking-wider">{label}</div>
-            <div className="text-neutral-200">{value}</div>
-          </div>
-        );
-      }
-
-      // ---- App (React) ----
-      function App() {
-        const [route, setRoute] = useState("home");
-        const [libraries, setLibraries] = useState(INITIAL_LIBRARIES);
-        const [navVisible, setNavVisible] = useState(false);
-        const [firstLoad, setFirstLoad] = useState(() => sessionStorage.getItem("heroPlayed") ? false : true);
-
-        const isLibRoute = route.startsWith("lib:");
-        const currentLib = isLibRoute ? libraries.find(l => `lib:${l.slug}` === route) : null;
-
-        // Reveal-on-view (replays every time)
+      function useRevealOnView(deps=[]) {
         useEffect(() => {
           const io = new IntersectionObserver((entries) => {
             entries.forEach(e => {
@@ -251,64 +93,221 @@
           }, { threshold: 0.15 });
           document.querySelectorAll(".reveal-seq").forEach(el => io.observe(el));
           return () => io.disconnect();
-        }, [route]);
+        }, deps);
+      }
 
-        // Hero finished → show nav, mark one-time animation
+      // ---------------- Components ----------------
+      function SplitTitle({ text, onFinished, play }){
+        const letters = useMemo(() => text.split(""), [text]);
+        useEffect(() => {
+          if (!play) return;
+          const total = letters.length * 40 + 600;
+          const t = setTimeout(() => onFinished && onFinished(), total);
+          return () => clearTimeout(t);
+        }, [letters.length, onFinished, play]);
+        const nbsp = "\xa0";
+        return (
+          <h1 className="text-white text-[clamp(2.5rem,6vw,4.5rem)] font-light tracking-tight drop-shadow-md title">
+            {letters.map((ch,i) => (
+              <span key={i} className={cx(play && "fade-up inline-block")} style={play?{animationDelay:`${i*40}ms`}:{opacity:1}}>{ch===" "?nbsp:ch}</span>
+            ))}
+          </h1>
+        );
+      }
+
+      function TopNav({ visible, onNav }){
+        const links = [
+          { label: "Portfolio", href: "#libraries" },
+          { label: "About", href: "#about" },
+          { label: "Contact", href: "#contact" },
+        ];
+        return (
+          <nav className={cx("fixed top-0 left-0 right-0 z-40 border-b border-neutral-800 backdrop-blur-md bg-black/25", visible?"fade-down":"opacity-0")}> 
+            <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
+              <a href="#hero" className="text-neutral-200 hover:text-white btn" onClick={(e)=>{e.preventDefault(); onNav("#hero");}}>{SITE_TITLE}</a>
+              <div className="flex items-center gap-2">
+                {links.map(l=> (
+                  <a key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg hover:bg-neutral-900 text-neutral-200 btn" onClick={(e)=>{e.preventDefault(); onNav(l.href);}}>{l.label}</a>
+                ))}
+              </div>
+            </div>
+          </nav>
+        );
+      }
+
+      function Hero({ play, onIntroDone, hero }){
+        return (
+          <header className="relative h-full w-full flex items-center justify-center">
+            <div className="absolute inset-0" style={{ backgroundImage: hero?`url(${hero})`:"none", backgroundSize:"cover", backgroundPosition:"center", backgroundColor: hero?"transparent":"#111" }} />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="relative z-10 text-center px-6">
+              <SplitTitle text={SITE_TITLE} onFinished={onIntroDone} play={play} />
+              <p className={cx("mt-4 text-neutral-300 max-w-xl mx-auto", play&&"fade-up")} style={play?{animationDelay:"600ms"}:undefined}>Photography Portfolio</p>
+              <a href="#libraries" className={cx("inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700 btn", play&&"fade-up")} style={play?{animationDelay:"1000ms"}:undefined} onClick={(e)=>{e.preventDefault(); document.getElementById("libraries")?.scrollIntoView({behavior:"smooth", block:"start"});}}>View Work</a>
+            </div>
+            <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
+          </header>
+        );
+      }
+
+      function LibrariesGrid({ libraries, onOpen }){
+        return (
+          <div className="text-center w-full max-w-6xl px-4">
+            <h2 className="text-2xl md:text-3xl font-medium fade-down">Libraries</h2>
+            <p className="text-neutral-400 mt-2 fade-up">Browse collections by subject or project.</p>
+            <div className="mt-6 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 reveal-seq">
+              {libraries.map((lib,i)=> (
+                <button
+                  key={lib.slug}
+                  data-testid="lib-card"
+                  className="card rounded-2xl overflow-hidden text-center outline-none bg-neutral-900"
+                  onClick={()=> onOpen(lib.slug)}
+                >
+                  <div className="anim" style={{animationDelay:`${i*80}ms`}}>
+                    <div className="aspect-[16/13] w-full bg-neutral-800" style={{ backgroundImage: lib.cover?`url(${lib.cover})`:"none", backgroundSize:"cover", backgroundPosition:"center" }} />
+                    <div className="p-2 md:p-3">
+                      <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
+                      <div className="text-neutral-400 text-[11px] md:text-xs">{lib.photos.length} photos</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      function LibraryPage({ lib, onBack }){
+        return (
+          <main className="fade-in">
+            <header className="relative h-[60svh] w-full flex items-center justify-center text-center">
+              <div className="absolute inset-0" style={{ backgroundImage: lib.cover?`url(${lib.cover})`:"none", backgroundSize:"cover", backgroundPosition:"center", backgroundColor: lib.cover?"transparent":"#111" }} />
+              <div className="absolute inset-0 bg-black/40" />
+              <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 w-full">
+                <h1 className="text-white text-4xl md:text-5xl font-light fade-down">{lib.title}</h1>
+                <p className="text-neutral-300 mt-2 fade-up">{lib.photos.length} works</p>
+                <div className="mt-6"><button className="text-neutral-200 hover:text-white btn" onClick={onBack}>← Back</button></div>
+              </div>
+            </header>
+            <section className="bg-neutral-950 text-center">
+              <div className="max-w-6xl mx-auto px-4 py-16">
+                <div className="gallery">
+                  {lib.photos.map((src,i)=> (
+                    <figure key={src} className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center fade-up" style={{animationDelay:`${i*30}ms`}}>
+                      <img src={src} alt={`${lib.title} ${i+1}`} className="w-full h-auto rounded-md object-cover" />
+                      <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i+1}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </main>
+        );
+      }
+
+      function About(){
+        return (
+          <main className="mx-auto max-w-3xl px-4 py-28 text-center">
+            <h2 className="text-2xl md:text-3xl font-medium fade-down">About</h2>
+            <p className="text-neutral-400 mt-4 whitespace-pre-wrap min-h-[4em] fade-up">I’m {SITE_TITLE}, a photographer who loves capturing stories in landscapes, cities, and people. This site showcases selected work.</p>
+          </main>
+        );
+      }
+
+      function Contact(){
+        return (
+          <main className="mx-auto max-w-3xl px-4 py-28 text-center">
+            <h2 className="text-2xl md:text-3xl font-medium fade-down">Contact</h2>
+            <p className="text-neutral-400 mt-4 fade-up">Reach out for shoots, licensing, or collaborations.</p>
+            <div className="mt-8 grid gap-3 justify-center reveal-seq">
+              <div className="anim" style={{animationDelay:'.1s'}}>
+                <div className="text-neutral-500 text-sm uppercase tracking-wider">Email</div>
+                <div><a className="underline btn" href="mailto:hello@example.com">hello@example.com</a></div>
+              </div>
+              <div className="anim" style={{animationDelay:'.2s'}}>
+                <div className="text-neutral-500 text-sm uppercase tracking-wider">Instagram</div>
+                <div><a className="underline btn" href="#" target="_blank" rel="noreferrer">@yourhandle</a></div>
+              </div>
+              <div className="anim" style={{animationDelay:'.3s'}}>
+                <div className="text-neutral-500 text-sm uppercase tracking-wider">Location</div>
+                <div>Your City, Country</div>
+              </div>
+            </div>
+          </main>
+        );
+      }
+
+      // ---------------- App ----------------
+      function App(){
+        const [route, setRoute] = useState('home');
+        const [hero, setHero] = useState('');
+        const [libraries, setLibraries] = useState(DEFAULT_LIBS);
+        const [navVisible, setNavVisible] = useState(false);
+        const [firstLoad, setFirstLoad] = useState(() => sessionStorage.getItem('heroPlayed') ? false : true);
+
+        const heroRef = useRef(null), libsRef = useRef(null), aboutRef = useRef(null), contactRef = useRef(null);
+
+        useEffect(()=>{ // load manifest once
+          loadManifest().then(({hero, libraries}) => { setHero(hero); setLibraries(libraries.length?libraries:DEFAULT_LIBS); });
+        },[]);
+
+        // reveal observers (replay on route changes)
+        useRevealOnView([route]);
+
+        const isLibRoute = route.startsWith('lib:');
+        const currentLib = isLibRoute ? libraries.find(l => `lib:${l.slug}`===route) : null;
+
         const handleIntroDone = () => {
           setNavVisible(true);
-          if (firstLoad) {
-            setFirstLoad(false);
-            sessionStorage.setItem("heroPlayed", "1");
-          }
+          if(firstLoad){ setFirstLoad(false); sessionStorage.setItem('heroPlayed','1'); }
         };
 
-        // expose helpers (optional)
-        useEffect(() => {
-          window.addLibrary = (lib) => setLibraries(prev => [...prev, lib]);
-          window.replaceLibraries = (list) => setLibraries(list);
-          return () => { delete window.addLibrary; delete window.replaceLibraries; };
-        }, []);
+        const scrollToHash = (hash) => {
+          const map = { '#hero': heroRef, '#libraries': libsRef, '#about': aboutRef, '#contact': contactRef };
+          const el = map[hash]?.current; if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+        };
+
+        // smoke tests (non-fatal)
+        useEffect(()=>{
+          console.assert(document.querySelector('nav'), 'Top nav should render');
+          if(route==='home'){
+            ['hero','libraries','about','contact'].forEach(id=> console.assert(document.getElementById(id), `#${id} exists`));
+            const cards = document.querySelectorAll('[data-testid="lib-card"]');
+            console.assert(cards.length === libraries.length, `cards=${cards.length} libs=${libraries.length}`);
+          }
+        },[route,libraries.length]);
 
         return (
           <div className="min-h-screen bg-neutral-950">
-            {/* Top nav hidden until hero name finishes on first visit */}
-            {!isLibRoute && <TopNav visible={navVisible || !firstLoad} />}
+            {!isLibRoute && <TopNav visible={navVisible || !firstLoad} onNav={scrollToHash} />}
 
             {isLibRoute ? (
-              <div className="page-enter page-enter-active">
-                {currentLib ? (
-                  <LibraryPage lib={currentLib} onBack={() => setRoute("home")} />
-                ) : (
-                  <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">
-                    <p>Library not found.</p>
-                    <button onClick={() => setRoute("home")} className="mt-6 px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white btn">Back to Home</button>
-                  </main>
-                )}
-              </div>
+              currentLib ? (
+                <LibraryPage lib={currentLib} onBack={()=> setRoute('home')} />
+              ) : (
+                <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">Not found. <button className="btn underline" onClick={()=>setRoute('home')}>Back</button></main>
+              )
             ) : (
               <div className="snap-container">
-                <section id="hero" className="snap-start h-screen flex items-center justify-center">
-                  <Hero play={firstLoad} onIntroDone={handleIntroDone} />
+                <section id="hero" ref={heroRef} className="h-screen flex items-center justify-center">
+                  <Hero play={firstLoad} onIntroDone={handleIntroDone} hero={hero} />
                 </section>
-
-                <section id="libraries" className="snap-start min-h-screen flex items-center justify-center">
-                  <LibrariesGrid libraries={libraries} onOpen={(slug) => setRoute(`lib:${slug}`)} />
+                <section id="libraries" ref={libsRef} className="min-h-screen flex items-center justify-center">
+                  <div className="w-full" data-testid="libraries">
+                    <div className="text-center w-full">
+                      <LibrariesGrid libraries={libraries} onOpen={(slug)=> setRoute(`lib:${slug}`)} />
+                    </div>
+                  </div>
                 </section>
-
-                <section id="about" className="snap-start min-h-screen flex items-center justify-center">
-                  <About />
-                </section>
-
-                <section id="contact" className="snap-start min-h-screen flex items-center justify-center">
-                  <Contact />
-                </section>
+                <section id="about" ref={aboutRef} className="min-h-screen flex items-center justify-center"><About /></section>
+                <section id="contact" ref={contactRef} className="min-h-screen flex items-center justify-center"><Contact /></section>
               </div>
             )}
           </div>
         );
       }
 
-      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+      ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
     </script>
   </body>
 </html>
