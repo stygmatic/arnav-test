@@ -21,16 +21,15 @@
       .animate-fadeIn  { animation: fadeIn .6s ease forwards }
       .animate-fadeUp  { animation: fadeUp .6s ease forwards }
       .animate-fadeDown{ animation: fadeDown .6s ease forwards }
+      .reveal-seq > *  { opacity:0; transform:translateY(10px) }
+      .reveal-seq.revealed > * { animation: fadeUp .6s ease forwards }
       .btn            { transition:transform .18s ease, background-color .18s ease, color .18s ease }
       .btn:hover      { transform:scale(1.05) }
       .card           { transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s }
       .card:hover     { transform:scale(1.05) rotate(1deg) }
-      /* Page fade */
+      /* Utility for page fade */
       .page-enter     { opacity:0 }
       .page-enter-active{ animation: fadeIn .4s ease forwards }
-      /* Reveal-on-view: animate INNER wrapper so hover transforms still apply on the outer card */
-      .reveal-seq > * .anim  { opacity:0; transform:translateY(10px) }
-      .reveal-seq.revealed > * .anim { animation: fadeUp .6s ease forwards }
     </style>
     <!-- React + ReactDOM (UMD) + Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -149,14 +148,13 @@
                   data-testid="lib-card"
                   onClick={() => onOpen(lib.slug)}
                   className="group card relative rounded-2xl overflow-hidden text-center outline-none bg-neutral-900"
+                  style={{ animationDelay: `${0.08 * i}s` }}
                 >
-                  <div className="anim" style={{ animationDelay: `${0.08 * i}s` }}>
-                    <div className="aspect-[16/13] w-full bg-neutral-800"
-                         style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-                    <div className="p-2 md:p-3">
-                      <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
-                      <div className="text-neutral-400 text-[11px] md:text-xs">{lib.photos.length} photos</div>
-                    </div>
+                  <div className="aspect-[16/13] w-full bg-neutral-800"
+                       style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                  <div className="p-2 md:p-3">
+                    <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
+                    <div className="text-neutral-400 text-[11px] md:text-xs">{lib.photos.length} photos</div>
                   </div>
                 </button>
               ))}
@@ -199,15 +197,6 @@
         );
       }
 
-      function NotFound({ onBack }) {
-        return (
-          <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">
-            <p>Library not found.</p>
-            <button onClick={onBack} className="mt-6 px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white btn">Back to Home</button>
-          </main>
-        );
-      }
-
       function About() {
         return (
           <main className="mx-auto max-w-3xl px-4 py-28 text-center">
@@ -242,7 +231,7 @@
         );
       }
 
-      // ---- App ----
+      // ---- App (React) ----
       function App() {
         const [route, setRoute] = useState("home");
         const [libraries, setLibraries] = useState(INITIAL_LIBRARIES);
@@ -273,7 +262,7 @@
           }
         };
 
-        // Expose helpers (optional)
+        // expose helpers (optional)
         useEffect(() => {
           window.addLibrary = (lib) => setLibraries(prev => [...prev, lib]);
           window.replaceLibraries = (list) => setLibraries(list);
@@ -282,6 +271,7 @@
 
         return (
           <div className="min-h-screen bg-neutral-950">
+            {/* Top nav hidden until hero name finishes on first visit */}
             {!isLibRoute && <TopNav visible={navVisible || !firstLoad} />}
 
             {isLibRoute ? (
@@ -289,7 +279,10 @@
                 {currentLib ? (
                   <LibraryPage lib={currentLib} onBack={() => setRoute("home")} />
                 ) : (
-                  <NotFound onBack={() => setRoute("home")} />
+                  <main className="mx-auto max-w-3xl px-4 py-28 text-center text-neutral-300">
+                    <p>Library not found.</p>
+                    <button onClick={() => setRoute("home")} className="mt-6 px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white btn">Back to Home</button>
+                  </main>
                 )}
               </div>
             ) : (
