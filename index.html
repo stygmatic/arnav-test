@@ -11,27 +11,27 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- Framer Motion UMD -->
     <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
-    <!-- Babel for in-browser JSX transform (fine for quick deploys; for production use a build) -->
+    <!-- Babel for in-browser JSX transform -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-      /* Smooth scroll + minimal base reset */
       html, body { scroll-behavior:smooth; margin:0; height:100%; overflow-x:hidden; }
+      body { font-family: "Times New Roman", Times, serif; background:#0a0a0a; }
       section { scroll-snap-align: start; }
       .snap-container { scroll-snap-type: y mandatory; height:100vh; overflow-y:scroll; scroll-padding-top: 3.5rem; }
-      /* Times New Roman sitewide */
-      body { font-family: "Times New Roman", Times, serif; }
     </style>
   </head>
-  <body class="bg-neutral-950 text-neutral-50 selection:bg-neutral-800 selection:text-white">
+  <body class="text-neutral-50 selection:bg-neutral-800 selection:text-white">
+    <noscript style="color:white;position:fixed;inset:0;display:grid;place-items:center;">
+      This site needs JavaScript enabled.
+    </noscript>
     <div id="root"></div>
 
-    <script type="text/babel">
-      const { useEffect, useRef, useState } = React;
+    <script type="text/babel" data-presets="react">
+      const { useEffect, useState } = React;
       const { motion, AnimatePresence } = framerMotion;
 
-      // ---- CONFIG ----
       const SITE_TITLE = "Arnav Asthana";
-      // Use RELATIVE paths on GitHub Pages. Put hero.jpg in the repo root (same folder as index.html), or update the path.
+      /* IMPORTANT: Put hero.jpg next to index.html, or update this path */
       const HERO_IMAGE_SRC = "hero.jpg";
 
       const COLORS = {
@@ -51,16 +51,15 @@
         { slug: "client-work", title: "Client Work", cover: "libraries/client-work/cover.jpg", photos: ["libraries/client-work/1.jpg"] },
       ];
 
-      function classNames(...xs){ return xs.filter(Boolean).join(" "); }
+      const cx = (...xs) => xs.filter(Boolean).join(" ");
 
-      // ---- SplitTitle (only animates on first open) ----
       function SplitTitle({ text, onFinished, play }) {
         const letters = text.split("");
         const variants = {
           hidden: { opacity: 0, y: 8 },
-          show: i => ({ opacity: 1, y: 0, transition: { delay: 0.04 * i, duration: 0.5 } })
+          show: i => ({ opacity: 1, y: 0, transition: { delay: 0.04 * i, duration: 0.5 } }),
         };
-        useEffect(() => {
+        React.useEffect(() => {
           if (!play) return;
           const total = letters.length * 0.04 + 0.5;
           const t = setTimeout(() => onFinished && onFinished(), total * 1000);
@@ -71,8 +70,7 @@
         return (
           <h1 className="text-white text-5xl md:text-7xl font-light tracking-tight drop-shadow-md">
             {letters.map((ch, i) => (
-              <motion.span key={i} custom={i} variants={variants}
-                           initial={play ? "hidden" : "show"} animate="show">
+              <motion.span key={i} custom={i} variants={variants} initial={play ? "hidden" : "show"} animate="show">
                 {ch === " " ? NBSP : ch}
               </motion.span>
             ))}
@@ -112,9 +110,9 @@
                         transition={{ delay: play ? 0.6 : 0, duration: 0.6 }}
                         className="mt-4 text-neutral-300 max-w-xl mx-auto">Photography Portfolio</motion.p>
               <motion.a whileHover={{ scale: 1.05 }} href="#libraries"
-                initial={{ opacity: play ? 0 : 1, y: play ? 12 : 0 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: play ? 1.0 : 0, duration: 0.6 }}
-                className="inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700">
+                        initial={{ opacity: play ? 0 : 1, y: play ? 12 : 0 }} animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: play ? 1.0 : 0, duration: 0.6 }}
+                        className="inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700">
                 View Work
               </motion.a>
             </div>
@@ -128,16 +126,17 @@
         const item = () => ({ hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0, transition: { duration: 0.6 } } });
         return (
           <div className="text-center w-full max-w-5xl px-4">
-            <h2 className={classNames("text-2xl md:text-3xl font-medium", COLORS.text)}>Libraries</h2>
-            <p className={classNames(COLORS.subtext, "mt-2")}>Browse collections by subject or project.</p>
+            <h2 className={cx("text-2xl md:text-3xl font-medium", COLORS.text)}>Libraries</h2>
+            <p className={cx(COLORS.subtext, "mt-2")}>Browse collections by subject or project.</p>
             <motion.div className="mt-6 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4"
                         variants={container} initial="hidden" whileInView="show" viewport={{ once: false, margin: "-10%" }}>
               {libraries.map((lib) => (
                 <motion.button key={lib.slug} data-testid="lib-card" onClick={() => onOpen(lib.slug)}
                   variants={item()} whileHover={{ scale: 1.05, rotate: 1 }} whileFocus={{ scale: 1.05, rotate: 1 }} whileTap={{ scale: 0.99 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20, mass: 0.2 }}
-                  className={classNames("group relative rounded-2xl overflow-hidden text-center outline-none", "hover:shadow-2xl hover:shadow-black/40", COLORS.card)}>
-                  <div className="aspect-[16/13] w-full bg-neutral-800" style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                  className={cx("group relative rounded-2xl overflow-hidden text-center outline-none","hover:shadow-2xl hover:shadow-black/40",COLORS.card)}>
+                  <div className="aspect-[16/13] w-full bg-neutral-800"
+                       style={{ backgroundImage: `url(${lib.cover})`, backgroundSize: "cover", backgroundPosition: "center" }} />
                   <div className="p-2 md:p-3">
                     <div className="text-neutral-100 text-sm md:text-base">{lib.title}</div>
                     <div className="text-neutral-400 text-[11px] md:text-xs">{lib.photos.length} photos</div>
@@ -160,22 +159,20 @@
                 <h1 className="text-white text-4xl md:text-5xl font-light">{lib.title}</h1>
                 <p className="text-neutral-300 mt-2">{lib.photos.length} works</p>
                 <div className="mt-6">
-                  <!-- Inline ArrowLeft Icon -->
+                  {/* simple back icon using unicode to avoid JSX/SVG attribute issues */}
                   <motion.button whileHover={{ scale: 1.05 }} onClick={onBack} className="inline-flex items-center gap-2 text-neutral-200 hover:text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 19l-7-7 7-7"></path><path d="M19 12H5"></path>
-                    </svg>
-                    Back
+                    <span aria-hidden="true">←</span> Back
                   </motion.button>
                 </div>
               </div>
             </header>
             <section className="bg-neutral-950 text-center">
               <div className="max-w-6xl mx-auto px-4 py-16">
-                <div className="grid gap-8 md:gap-10 justify-center" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))" }}>
+                <div className="grid gap-8 md:gap-10 justify-center"
+                     style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))" }}>
                   {lib.photos.map((src, i) => (
-                    <motion.figure key={src} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
-                                   transition={{ duration: 0.6, delay: 0.03 * i }}
+                    <motion.figure key={src} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                                   viewport={{ once: false }} transition={{ duration: 0.6, delay: 0.03 * i }}
                                    className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center">
                       <img src={src} alt={`${lib.title} ${i + 1}`} className="w-full h-auto rounded-md object-cover" />
                       <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i + 1}</figcaption>
@@ -203,8 +200,8 @@
       function About() {
         return (
           <main className="mx-auto max-w-3xl px-4 py-28 text-center">
-            <h2 className={classNames("text-2xl md:text-3xl font-medium", COLORS.text)}>About</h2>
-            <p className={classNames(COLORS.subtext, "mt-4 whitespace-pre-wrap min-h-[4em]")}>
+            <h2 className={cx("text-2xl md:text-3xl font-medium", COLORS.text)}>About</h2>
+            <p className={cx(COLORS.subtext, "mt-4 whitespace-pre-wrap min-h-[4em]")}>
               I’m {SITE_TITLE}, a photographer who loves capturing stories in landscapes, cities, and people. This site showcases selected work.
             </p>
           </main>
@@ -214,8 +211,8 @@
       function Contact() {
         return (
           <main className="mx-auto max-w-3xl px-4 py-28 text-center">
-            <h2 className={classNames("text-2xl md:text-3xl font-medium", COLORS.text)}>Contact</h2>
-            <p className={classNames(COLORS.subtext, "mt-4")}>Reach out for shoots, licensing, or collaborations.</p>
+            <h2 className={cx("text-2xl md:text-3xl font-medium", COLORS.text)}>Contact</h2>
+            <p className={cx(COLORS.subtext, "mt-4")}>Reach out for shoots, licensing, or collaborations.</p>
             <div className="mt-8 grid gap-3 justify-center">
               <InfoRow label="Email" value={<a className="underline" href="mailto:hello@example.com">hello@example.com</a>} />
               <InfoRow label="Instagram" value={<a className="underline" href="#" target="_blank" rel="noreferrer">@yourhandle</a>} />
@@ -244,13 +241,10 @@
         const isLibRoute = route.startsWith("lib:");
         const currentLib = isLibRoute ? libraries.find(l => `lib:${l.slug}` === route) : null;
 
-        // expose helpers for future updates
-        useEffect(() => {
+        React.useEffect(() => {
           window.addLibrary = (lib) => setLibraries(prev => [...prev, lib]);
           window.replaceLibraries = (list) => setLibraries(list);
-          // sanity checks
           setTimeout(() => {
-            console.assert(document.querySelector('nav'), 'TopNav <nav> should exist');
             const cards = document.querySelectorAll('[data-testid="lib-card"]');
             console.assert(cards.length === libraries.length, `Expected ${libraries.length} library cards, found ${cards.length}`);
           }, 0);
@@ -258,7 +252,7 @@
         }, [libraries.length]);
 
         return (
-          <div className={classNames(COLORS.bg, "min-h-screen")}>
+          <div className={cx(COLORS.bg, "min-h-screen")}>
             {!isLibRoute && <TopNav visible={navVisible} />}
 
             <AnimatePresence mode="wait">
