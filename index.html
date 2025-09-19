@@ -181,6 +181,7 @@
                         src={lib.cover || ''}
                         alt={`${lib.title} cover`}
                         className="img"
+                        referrerPolicy="no-referrer"
                         onError={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.add('failed'); e.currentTarget.src=''; console.warn('Cover failed:', lib.title, lib.cover); }}
                         onLoad={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.remove('failed'); }}
                       />
@@ -219,6 +220,7 @@
                         src={src || ''}
                         alt={`${lib.title} ${i+1}`}
                         className="img rounded-md"
+                        referrerPolicy="no-referrer"
                         onError={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.add('failed'); e.currentTarget.src=''; console.warn('Photo failed:', lib.title, src); }}
                         onLoad={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.remove('failed'); }}
                       />
