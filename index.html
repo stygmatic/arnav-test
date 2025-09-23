@@ -38,7 +38,9 @@
       .reveal-seq.revealed > * .anim{ animation: fadeUp .6s ease forwards }
 
       /* Gallery */
-      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) }
+      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(1,minmax(0,1fr)) }
+      @media (min-width:640px){ .gallery{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (min-width:1024px){ .gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
       /* Image fallbacks */
       .img-wrap{ position:relative; background:#1a1a1a; }
       .img-wrap.failed::before{ content:'Image unavailable'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#a3a3a3; font-size:.9rem; letter-spacing:.02em; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); }
@@ -68,27 +70,107 @@
         { slug: "client-work", title: "Client Work", cover: "", photos: [] },
       ];
 
-      // 1px transparent gif (safe placeholder)
-      const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+      const CDN_PLACEHOLDER = 'https://hc-cdn.hel1.your-objectstorage.com/s/v3/b9fb3f59e871ae5c976d04995985101c5ee7cdb4_screenshot_2025-09-23_at_12.53.43___pm.png';
 
-      async function loadManifest(){
-        try{
-          const res = await fetch('cdn-manifest.json', { cache:'no-store' });
-          if(!res.ok) throw new Error('manifest not found');
-          const data = await res.json();
-          const hero = data.hero || '';
-          const libraries = (data.libraries || []).map(l => ({
-            slug: l.slug,
-            title: l.title,
-            cover: l.cover || (l.photos && l.photos[0]) || '',
-            photos: Array.isArray(l.photos) ? l.photos : []
-          }));
-          return { hero, libraries };
-        }catch(err){
-          console.warn('Using defaults — no/invalid cdn-manifest.json', err);
-          return { hero:'', libraries: DEFAULT_LIBS };
+      const CDN_CONTENT = {
+        hero: CDN_PLACEHOLDER,
+        libraries: [
+          // The first URL in each `images` array is used as the cover; the rest populate the gallery grid automatically.
+          {
+            slug: 'cars',
+            title: 'Cars',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'sports',
+            title: 'Sports',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'landscapes',
+            title: 'Landscapes',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'abstract',
+            title: 'Abstract',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'scenery',
+            title: 'Scenery',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'client-work',
+            title: 'Client Work',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+        ],
+      };
+
+      function prepareLibraries(manifestLibraries){
+        if(!Array.isArray(manifestLibraries) || !manifestLibraries.length){
+          return DEFAULT_LIBS;
         }
+
+        const normalized = manifestLibraries
+          .map((lib) => {
+            if(!lib || !lib.slug) return null;
+            const images = Array.isArray(lib.images) ? lib.images.filter(Boolean) : [];
+            const fallbackPhotos = Array.isArray(lib.photos) ? lib.photos.filter(Boolean) : [];
+            const [coverFromImages, ...gridImages] = images;
+            const cover = coverFromImages || lib.cover || fallbackPhotos[0] || '';
+            const photos = gridImages.length
+              ? gridImages
+              : fallbackPhotos.filter((url, idx) => !(cover && idx === 0 && url === cover));
+
+            return {
+              slug: lib.slug,
+              title: lib.title || lib.slug,
+              cover,
+              photos,
+            };
+          })
+          .filter(Boolean);
+
+        return normalized.length ? normalized : DEFAULT_LIBS;
       }
+
+      const HERO_IMAGE = CDN_CONTENT.hero || '';
+      const CDN_LIBRARIES = prepareLibraries(CDN_CONTENT.libraries);
 
       /* --------------------------------------------------
        * Helpers
@@ -272,19 +354,12 @@
        * -------------------------------------------------- */
       function App(){
         const [route, setRoute] = useState('home');
-        const [hero, setHero] = useState('');
-        const [libraries, setLibraries] = useState(DEFAULT_LIBS);
+        const hero = HERO_IMAGE;
+        const libraries = CDN_LIBRARIES;
         const [navVisible, setNavVisible] = useState(false);
         const [firstLoad, setFirstLoad] = useState(() => sessionStorage.getItem('heroPlayed') ? false : true);
 
         const heroRef = useRef(null), libsRef = useRef(null), aboutRef = useRef(null), contactRef = useRef(null);
-
-        useEffect(() => { // load manifest once
-          loadManifest().then(({ hero, libraries }) => {
-            setHero(hero);
-            setLibraries(libraries.length ? libraries : DEFAULT_LIBS);
-          });
-        }, []);
 
         useRevealOnView([route]);
 
