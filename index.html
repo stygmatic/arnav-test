@@ -59,8 +59,8 @@
 
       .library-hero{ padding-top:4rem; padding-bottom:2.5rem; }
       @media (min-width:768px){ .library-hero{ padding-top:5rem; padding-bottom:3.5rem; } }
-      .library-hero-media{ width:100%; max-width:54rem; margin-inline:auto; aspect-ratio:16/9; border-radius:28px; overflow:hidden; border:1px solid rgba(255,255,255,.08); box-shadow:0 25px 55px rgba(0,0,0,.45); background:#0f172a; position:relative; }
-      @media (min-width:1024px){ .library-hero-media{ max-width:72rem; aspect-ratio:21/9; } }
+      .library-hero-media{ width:100%; max-width:48rem; margin-inline:auto; aspect-ratio:24/9; border-radius:32px; overflow:hidden; border:1px solid rgba(255,255,255,.08); box-shadow:0 25px 55px rgba(0,0,0,.45); background:#0f172a; position:relative; }
+      @media (min-width:1024px){ .library-hero-media{ max-width:60rem; aspect-ratio:32/9; } }
       .library-hero-media img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform 10s ease, filter .6s ease; }
       .library-hero-media:hover img{ transform:scale(1.04); filter:saturate(1.1); }
       .library-hero-media.failed::after{ content:'Image unavailable'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:.95rem; letter-spacing:.08em; text-transform:uppercase; background:rgba(15,23,42,.65); }
@@ -78,8 +78,7 @@
 
       /* Gallery */
       .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(1,minmax(0,1fr)) }
-      @media (min-width:640px){ .gallery{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
-      @media (min-width:1024px){ .gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+      @media (min-width:768px){ .gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
       /* Image fallbacks */
       .img-wrap{ position:relative; background:#1a1a1a; }
       .img-wrap.failed::before{ content:'Image unavailable'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#a3a3a3; font-size:.9rem; letter-spacing:.02em; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); }
@@ -100,116 +99,89 @@
       /* --------------------------------------------------
        * Data / Manifest loader
        * -------------------------------------------------- */
-      const DEFAULT_LIBS = [
-        { slug: "cars",        title: "Cars",        cover: "", photos: [] },
-        { slug: "sports",      title: "Sports",      cover: "", photos: [] },
-        { slug: "landscapes",  title: "Landscapes",  cover: "", photos: [] },
-        { slug: "abstract",    title: "Abstract",    cover: "", photos: [] },
-        { slug: "scenery",     title: "Scenery",     cover: "", photos: [] },
-        { slug: "client-work", title: "Client Work", cover: "", photos: [] },
-      ];
-
       const CDN_PLACEHOLDER = 'https://hc-cdn.hel1.your-objectstorage.com/s/v3/b9fb3f59e871ae5c976d04995985101c5ee7cdb4_screenshot_2025-09-23_at_12.53.43___pm.png';
 
-      const CDN_CONTENT = {
-        hero: CDN_PLACEHOLDER,
-        libraries: [
-          // The first URL in each `images` array is used as the cover; the rest populate the gallery grid automatically.
-          {
-            slug: 'cars',
-            title: 'Cars',
-            images: [
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-            ],
-          },
-          {
-            slug: 'sports',
-            title: 'Sports',
-            images: [
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-            ],
-          },
-          {
-            slug: 'landscapes',
-            title: 'Landscapes',
-            images: [
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-            ],
-          },
-          {
-            slug: 'abstract',
-            title: 'Abstract',
-            images: [
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-            ],
-          },
-          {
-            slug: 'scenery',
-            title: 'Scenery',
-            images: [
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-            ],
-          },
-          {
-            slug: 'client-work',
-            title: 'Client Work',
-            images: [
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-              CDN_PLACEHOLDER,
-            ],
-          },
-        ],
-      };
+      const HERO_IMAGE_URL = CDN_PLACEHOLDER;
 
-      function prepareLibraries(manifestLibraries){
-        if(!Array.isArray(manifestLibraries) || !manifestLibraries.length){
-          return DEFAULT_LIBS;
-        }
+      // Update the `cdn` arrays below with the image URLs for each library. The
+      // first entry becomes the cover image while the remainder fill the grid
+      // automatically (3 images per row on larger screens).
+      const RAW_LIBRARIES = [
+        {
+          slug: 'cars',
+          title: 'Cars',
+          cdn: [
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+          ],
+        },
+        {
+          slug: 'sports',
+          title: 'Sports',
+          cdn: [
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+          ],
+        },
+        {
+          slug: 'landscapes',
+          title: 'Landscapes',
+          cdn: [
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+          ],
+        },
+        {
+          slug: 'abstract',
+          title: 'Abstract',
+          cdn: [
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+          ],
+        },
+        {
+          slug: 'scenery',
+          title: 'Scenery',
+          cdn: [
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+          ],
+        },
+        {
+          slug: 'client-work',
+          title: 'Client Work',
+          cdn: [
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+            CDN_PLACEHOLDER,
+          ],
+        },
+      ];
 
-        const normalized = manifestLibraries
-          .map((lib) => {
-            if(!lib || !lib.slug) return null;
-            const images = Array.isArray(lib.images) ? lib.images.filter(Boolean) : [];
-            const fallbackPhotos = Array.isArray(lib.photos) ? lib.photos.filter(Boolean) : [];
-            const [coverFromImages, ...gridImages] = images;
-            const cover = coverFromImages || lib.cover || fallbackPhotos[0] || '';
-            const photos = gridImages.length
-              ? gridImages
-              : fallbackPhotos.filter((url, idx) => !(cover && idx === 0 && url === cover));
-
-            return {
-              slug: lib.slug,
-              title: lib.title || lib.slug,
-              cover,
-              photos,
-            };
-          })
-          .filter(Boolean);
-
-        return normalized.length ? normalized : DEFAULT_LIBS;
-      }
-
-      const HERO_IMAGE = CDN_CONTENT.hero || '';
-      const CDN_LIBRARIES = prepareLibraries(CDN_CONTENT.libraries);
+      const LIBRARIES = RAW_LIBRARIES.map(({ slug, title, cdn = [] }) => {
+        const urls = cdn.filter(Boolean);
+        const [cover, ...photos] = urls;
+        const coverImage = cover || CDN_PLACEHOLDER;
+        return {
+          slug,
+          title,
+          cover: coverImage,
+          photos,
+        };
+      });
 
       /* --------------------------------------------------
        * Helpers
@@ -377,21 +349,30 @@
             <section className="bg-neutral-950 text-center">
               <div className="max-w-6xl mx-auto px-4 py-16">
                 <div className="gallery">
-                  {lib.photos.map((src,i) => (
-                    <figure key={src} className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center fade-up" style={{animationDelay:`${i*30}ms`}}>
-                      <div className="img-wrap w-full bg-neutral-800" style={{aspectRatio:'4/3'}}>
-                      <img
-                        src={src || ''}
-                        alt={`${lib.title} ${i+1}`}
-                        className="img rounded-md"
-                        referrerPolicy="no-referrer"
-                        onError={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.add('failed'); e.currentTarget.src=''; console.warn('Photo failed:', lib.title, src); }}
-                        onLoad={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.remove('failed'); }}
-                      />
-                    </div>
-                      <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i+1}</figcaption>
-                    </figure>
-                  ))}
+                  {lib.photos.length === 0 ? (
+                    <p className="col-span-full text-neutral-500 text-sm text-center">
+                      Add more CDN links to show work from this library.
+                    </p>
+                  ) : (
+                    lib.photos.map((src,i) => (
+                      <figure
+                        key={`${lib.slug}-${i}`}
+                        className="rounded-[16px] overflow-hidden border border-neutral-800 bg-neutral-900 p-3 flex flex-col items-center fade-up"
+                        style={{animationDelay:`${i*30}ms`}}>
+                        <div className="img-wrap w-full bg-neutral-800" style={{aspectRatio:'4/3'}}>
+                          <img
+                            src={src || ''}
+                            alt={`${lib.title} ${i+1}`}
+                            className="img rounded-md"
+                            referrerPolicy="no-referrer"
+                            onError={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.add('failed'); e.currentTarget.src=''; console.warn('Photo failed:', lib.title, src); }}
+                            onLoad={(e)=>{ const wrap=e.currentTarget.parentElement; if(wrap) wrap.classList.remove('failed'); }}
+                          />
+                        </div>
+                        <figcaption className="text-center text-neutral-400 text-xs mt-2">{lib.title} — #{i+1}</figcaption>
+                      </figure>
+                    ))
+                  )}
                 </div>
               </div>
             </section>
@@ -436,8 +417,8 @@
        * -------------------------------------------------- */
       function App(){
         const [route, setRoute] = useState('home');
-        const hero = HERO_IMAGE;
-        const libraries = CDN_LIBRARIES;
+        const hero = HERO_IMAGE_URL;
+        const libraries = LIBRARIES;
         const [navVisible, setNavVisible] = useState(false);
         const [firstLoad, setFirstLoad] = useState(() => sessionStorage.getItem('heroPlayed') ? false : true);
 
