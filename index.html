@@ -10,6 +10,7 @@
 
     <style>
       /* Base */
+      :root { color-scheme: dark; }
       html, body { scroll-behavior:smooth; margin:0; height:100%; overflow-x:hidden; }
       body { font-family: "Times New Roman", Times, serif; background:#0a0a0a; color:#fafafa; }
       a { color: inherit; text-decoration: none; }
@@ -27,6 +28,44 @@
       .fade-up{ animation:fadeUp .6s ease forwards }
       .fade-down{ animation:fadeDown .6s ease forwards }
 
+      @keyframes heroImageReveal { 0%{opacity:0; transform:scale(1.08) translateY(18px); filter:blur(14px);} 55%{opacity:1; filter:blur(0);} 100%{transform:scale(1) translateY(0);} }
+      @keyframes heroGlowDrift { 0%{transform:translate(-15%, -12%) scale(1.05); opacity:.35;} 50%{transform:translate(8%, 12%) scale(1.15); opacity:.55;} 100%{transform:translate(18%, -6%) scale(1.1); opacity:.35;} }
+      @keyframes heroCopyReveal { from{opacity:0; transform:translateY(24px); filter:blur(6px);} to{opacity:1; transform:translateY(0); filter:blur(0);} }
+      @keyframes heroLetter { 0%{opacity:0; transform:translateY(24px) scale(.96); filter:blur(6px);} 60%{filter:blur(0);} 100%{opacity:1; transform:translateY(0) scale(1);} }
+
+      .hero-scene{ position:relative; overflow:hidden; }
+      .hero-image-layer{ position:absolute; inset:-6%; background-size:cover; background-position:center; filter:saturate(1.12); opacity:0; transform:scale(1.05); }
+      .hero-image-layer.play{ animation:heroImageReveal 1.4s cubic-bezier(.22,.61,.36,1) forwards; }
+      .hero-image-layer.show{ opacity:1; transform:scale(1); filter:none; }
+      .hero-gradient{ position:absolute; inset:-20%; background:radial-gradient(circle at 30% 20%, rgba(45,212,191,.35), transparent 55%), radial-gradient(circle at 70% 80%, rgba(59,130,246,.28), transparent 50%); mix-blend-mode:screen; opacity:0; }
+      .hero-gradient.play{ animation:heroGlowDrift 14s ease-in-out infinite alternate; opacity:.4; }
+      .hero-gradient.show{ opacity:.35; }
+      .hero-overlay{ position:absolute; inset:0; background:linear-gradient(120deg, rgba(0,0,0,.65), rgba(10,10,10,.85)); backdrop-filter:blur(6px); }
+      .hero-inner{ position:relative; z-index:10; text-align:center; padding-inline:1.5rem; }
+      .intro-heading{ color:#fff; font-weight:300; letter-spacing:-.03em; text-shadow:0 25px 60px rgba(0,0,0,.65); }
+      .intro-letter{ display:inline-block; }
+      .intro-letter.play{ animation:heroLetter .7s cubic-bezier(.19,1,.22,1) forwards; }
+      .intro-letter.show{ opacity:1 !important; transform:none !important; filter:none !important; }
+      .intro-sub{ color:#e5e5e5; max-width:40rem; margin:1rem auto 0; font-size:clamp(1rem,2vw,1.2rem); opacity:0; }
+      .intro-sub.play{ animation:heroCopyReveal .9s ease forwards; animation-delay:.7s; }
+      .intro-sub.show{ opacity:1; transform:none; filter:none; }
+      .intro-cta{ display:inline-flex; align-items:center; gap:.4rem; padding:.75rem 1.75rem; border-radius:999px; border:1px solid rgba(229,229,229,.35); color:#f8fafc; background:linear-gradient(145deg, rgba(15,118,110,.28), rgba(15,118,110,.15)); opacity:0; transform:translateY(30px); transition:transform .35s cubic-bezier(.19,1,.22,1), box-shadow .35s ease, background .35s ease; }
+      .intro-cta span{ letter-spacing:.08em; font-size:.75rem; text-transform:uppercase; }
+      .intro-cta.play{ animation:heroCopyReveal .95s cubic-bezier(.19,1,.22,1) forwards; animation-delay:1.1s; }
+      .intro-cta.show{ opacity:1; transform:none; }
+      .intro-cta:hover{ transform:translateY(-4px) scale(1.02); box-shadow:0 20px 45px rgba(15,118,110,.35); background:linear-gradient(145deg, rgba(15,118,110,.4), rgba(15,118,110,.2)); }
+      .intro-cta:focus-visible{ outline:2px solid rgba(94,234,212,.55); outline-offset:4px; }
+      .intro-cta svg{ width:18px; height:18px; }
+
+      .library-hero{ padding-top:4rem; padding-bottom:2.5rem; }
+      @media (min-width:768px){ .library-hero{ padding-top:5rem; padding-bottom:3.5rem; } }
+      .library-hero-media{ width:100%; max-width:54rem; margin-inline:auto; aspect-ratio:16/9; border-radius:28px; overflow:hidden; border:1px solid rgba(255,255,255,.08); box-shadow:0 25px 55px rgba(0,0,0,.45); background:#0f172a; position:relative; }
+      @media (min-width:1024px){ .library-hero-media{ max-width:72rem; aspect-ratio:21/9; } }
+      .library-hero-media img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform 10s ease, filter .6s ease; }
+      .library-hero-media:hover img{ transform:scale(1.04); filter:saturate(1.1); }
+      .library-hero-media.failed::after{ content:'Image unavailable'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:.95rem; letter-spacing:.08em; text-transform:uppercase; background:rgba(15,23,42,.65); }
+      .library-hero-content{ max-width:40rem; margin:2rem auto 0; }
+
       /* Hover micro-interactions */
       .btn{ transition:transform .18s ease, background-color .18s ease, color .18s ease }
       .btn:hover{ transform:scale(1.05) }
@@ -38,7 +77,9 @@
       .reveal-seq.revealed > * .anim{ animation: fadeUp .6s ease forwards }
 
       /* Gallery */
-      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) }
+      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(1,minmax(0,1fr)) }
+      @media (min-width:640px){ .gallery{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (min-width:1024px){ .gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
       /* Image fallbacks */
       .img-wrap{ position:relative; background:#1a1a1a; }
       .img-wrap.failed::before{ content:'Image unavailable'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#a3a3a3; font-size:.9rem; letter-spacing:.02em; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); }
@@ -68,27 +109,107 @@
         { slug: "client-work", title: "Client Work", cover: "", photos: [] },
       ];
 
-      // 1px transparent gif (safe placeholder)
-      const IMG_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+      const CDN_PLACEHOLDER = 'https://hc-cdn.hel1.your-objectstorage.com/s/v3/b9fb3f59e871ae5c976d04995985101c5ee7cdb4_screenshot_2025-09-23_at_12.53.43___pm.png';
 
-      async function loadManifest(){
-        try{
-          const res = await fetch('cdn-manifest.json', { cache:'no-store' });
-          if(!res.ok) throw new Error('manifest not found');
-          const data = await res.json();
-          const hero = data.hero || '';
-          const libraries = (data.libraries || []).map(l => ({
-            slug: l.slug,
-            title: l.title,
-            cover: l.cover || (l.photos && l.photos[0]) || '',
-            photos: Array.isArray(l.photos) ? l.photos : []
-          }));
-          return { hero, libraries };
-        }catch(err){
-          console.warn('Using defaults — no/invalid cdn-manifest.json', err);
-          return { hero:'', libraries: DEFAULT_LIBS };
+      const CDN_CONTENT = {
+        hero: CDN_PLACEHOLDER,
+        libraries: [
+          // The first URL in each `images` array is used as the cover; the rest populate the gallery grid automatically.
+          {
+            slug: 'cars',
+            title: 'Cars',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'sports',
+            title: 'Sports',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'landscapes',
+            title: 'Landscapes',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'abstract',
+            title: 'Abstract',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'scenery',
+            title: 'Scenery',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+          {
+            slug: 'client-work',
+            title: 'Client Work',
+            images: [
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+              CDN_PLACEHOLDER,
+            ],
+          },
+        ],
+      };
+
+      function prepareLibraries(manifestLibraries){
+        if(!Array.isArray(manifestLibraries) || !manifestLibraries.length){
+          return DEFAULT_LIBS;
         }
+
+        const normalized = manifestLibraries
+          .map((lib) => {
+            if(!lib || !lib.slug) return null;
+            const images = Array.isArray(lib.images) ? lib.images.filter(Boolean) : [];
+            const fallbackPhotos = Array.isArray(lib.photos) ? lib.photos.filter(Boolean) : [];
+            const [coverFromImages, ...gridImages] = images;
+            const cover = coverFromImages || lib.cover || fallbackPhotos[0] || '';
+            const photos = gridImages.length
+              ? gridImages
+              : fallbackPhotos.filter((url, idx) => !(cover && idx === 0 && url === cover));
+
+            return {
+              slug: lib.slug,
+              title: lib.title || lib.slug,
+              cover,
+              photos,
+            };
+          })
+          .filter(Boolean);
+
+        return normalized.length ? normalized : DEFAULT_LIBS;
       }
+
+      const HERO_IMAGE = CDN_CONTENT.hero || '';
+      const CDN_LIBRARIES = prepareLibraries(CDN_CONTENT.libraries);
 
       /* --------------------------------------------------
        * Helpers
@@ -112,19 +233,34 @@
       /* --------------------------------------------------
        * Components
        * -------------------------------------------------- */
-      function SplitTitle({ text, onFinished, play }){
+      function SplitTitle({ text, onFinished, play }) {
         const letters = useMemo(() => text.split(''), [text]);
+        const announcedRef = useRef(false);
         useEffect(() => {
-          if(!play) return;
-          const total = letters.length * 40 + 600; // ms
-          const t = setTimeout(() => onFinished && onFinished(), total);
+          if(announcedRef.current) return;
+          if(!play){
+            announcedRef.current = true;
+            onFinished && onFinished();
+            return;
+          }
+          const total = letters.length * 55 + 700; // ms
+          const t = setTimeout(() => {
+            announcedRef.current = true;
+            onFinished && onFinished();
+          }, total);
           return () => clearTimeout(t);
         }, [letters.length, onFinished, play]);
         const nbsp = '\xa0';
         return (
-          <h1 className="text-white text-[clamp(2.5rem,6vw,4.5rem)] font-light tracking-tight drop-shadow-md">
+          <h1 className="intro-heading text-[clamp(2.7rem,6vw,4.8rem)]">
             {letters.map((ch,i) => (
-              <span key={i} className={cx(play && 'fade-up inline-block')} style={play?{animationDelay:`${i*40}ms`}:{opacity:1}}>{ch===' '?nbsp:ch}</span>
+              <span
+                key={i}
+                className={cx('intro-letter', play ? 'play' : 'show')}
+                style={play ? { animationDelay: `${i*55}ms` } : undefined}
+              >
+                {ch===' '?nbsp:ch}
+              </span>
             ))}
           </h1>
         );
@@ -151,16 +287,31 @@
       }
 
       function Hero({ play, onIntroDone, hero }){
+        const heroLayerClass = cx('hero-image-layer', play ? 'play' : 'show');
+        const gradientClass = cx('hero-gradient', play ? 'play' : 'show');
+        const subtitleClass = cx('intro-sub', play ? 'play' : 'show');
+        const ctaClass = cx('intro-cta', play ? 'play' : 'show');
+
+        const handleScroll = (e) => {
+          e.preventDefault();
+          document.getElementById('libraries')?.scrollIntoView({ behavior:'smooth', block:'start' });
+        };
+
         return (
-          <header className="relative h-full w-full flex items-center justify-center">
-            <div className="absolute inset-0" style={{ backgroundImage: hero?`url(${hero})`:'none', backgroundSize:'cover', backgroundPosition:'center', backgroundColor: hero?'transparent':'#111' }} />
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="relative z-10 text-center px-6">
+          <header className="hero-scene relative h-full w-full flex items-center justify-center">
+            <div className={heroLayerClass} style={{ backgroundImage: hero?`url(${hero})`:'none', backgroundColor: hero?'transparent':'#111' }} />
+            <div className={gradientClass} />
+            <div className="hero-overlay" />
+            <div className="hero-inner">
               <SplitTitle text={SITE_TITLE} onFinished={onIntroDone} play={play} />
-              <p className={cx('mt-4 text-neutral-300 max-w-xl mx-auto', play&&'fade-up')} style={play?{animationDelay:'600ms'}:undefined}>Photography Portfolio</p>
-              <a href="#libraries" className={cx('inline-block mt-10 px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-100 border border-neutral-700 btn', play&&'fade-up')} style={play?{animationDelay:'1000ms'}:undefined} onClick={(e)=>{e.preventDefault(); document.getElementById('libraries')?.scrollIntoView({behavior:'smooth', block:'start'});}}>View Work</a>
+              <p className={subtitleClass}>{'Photography Portfolio'.toUpperCase()}</p>
+              <a href="#libraries" className={ctaClass} onClick={handleScroll}>
+                <span>View Work</span>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </a>
             </div>
-            <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.8)]" />
           </header>
         );
       }
@@ -199,15 +350,28 @@
       }
 
       function LibraryPage({ lib, onBack }){
+        const worksLabel = lib.photos.length === 1 ? 'work' : 'works';
+
         return (
           <main className="fade-in">
-            <header className="relative h-[60svh] w-full flex items-center justify-center text-center">
-              <div className="absolute inset-0" style={{ backgroundImage: lib.cover?`url(${lib.cover})`:'none', backgroundSize:'cover', backgroundPosition:'center', backgroundColor: lib.cover?'transparent':'#111' }} />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 w-full">
-                <h1 className="text-white text-4xl md:text-5xl font-light fade-down">{lib.title}</h1>
-                <p className="text-neutral-300 mt-2 fade-up">{lib.photos.length} works</p>
-                <div className="mt-6"><button className="text-neutral-200 hover:text-white btn" onClick={onBack}>← Back</button></div>
+            <header className="library-hero bg-neutral-950">
+              <div className="max-w-6xl mx-auto px-4 flex flex-col items-center text-center">
+                <div className="library-hero-media" data-testid="library-hero">
+                  <img
+                    src={lib.cover || ''}
+                    alt={`${lib.title} cover`}
+                    referrerPolicy="no-referrer"
+                    onError={(e)=>{ e.currentTarget.src=''; e.currentTarget.closest('.library-hero-media')?.classList.add('failed'); }}
+                    onLoad={(e)=>{ e.currentTarget.closest('.library-hero-media')?.classList.remove('failed'); }}
+                  />
+                </div>
+                <div className="library-hero-content">
+                  <h1 className="text-white text-3xl md:text-4xl font-light fade-down">{lib.title}</h1>
+                  <p className="text-neutral-300 mt-3 fade-up">{lib.photos.length} {worksLabel}</p>
+                  <div className="mt-6">
+                    <button className="text-neutral-200 hover:text-white btn underline decoration-neutral-700/80 hover:decoration-white/80" onClick={onBack}>← Back</button>
+                  </div>
+                </div>
               </div>
             </header>
             <section className="bg-neutral-950 text-center">
@@ -272,19 +436,12 @@
        * -------------------------------------------------- */
       function App(){
         const [route, setRoute] = useState('home');
-        const [hero, setHero] = useState('');
-        const [libraries, setLibraries] = useState(DEFAULT_LIBS);
+        const hero = HERO_IMAGE;
+        const libraries = CDN_LIBRARIES;
         const [navVisible, setNavVisible] = useState(false);
         const [firstLoad, setFirstLoad] = useState(() => sessionStorage.getItem('heroPlayed') ? false : true);
 
         const heroRef = useRef(null), libsRef = useRef(null), aboutRef = useRef(null), contactRef = useRef(null);
-
-        useEffect(() => { // load manifest once
-          loadManifest().then(({ hero, libraries }) => {
-            setHero(hero);
-            setLibraries(libraries.length ? libraries : DEFAULT_LIBS);
-          });
-        }, []);
 
         useRevealOnView([route]);
 
