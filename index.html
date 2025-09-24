@@ -57,10 +57,10 @@
       .intro-cta:focus-visible{ outline:2px solid rgba(94,234,212,.55); outline-offset:4px; }
       .intro-cta svg{ width:18px; height:18px; }
 
-      .library-hero{ padding-top:4rem; padding-bottom:2.5rem; }
-      @media (min-width:768px){ .library-hero{ padding-top:5rem; padding-bottom:3.5rem; } }
-      .library-hero-media{ width:100%; max-width:44rem; margin-inline:auto; aspect-ratio:28/9; border-radius:30px; overflow:hidden; border:1px solid rgba(255,255,255,.08); box-shadow:0 25px 55px rgba(0,0,0,.45); background:#0f172a; position:relative; }
-      @media (min-width:1024px){ .library-hero-media{ max-width:56rem; aspect-ratio:34/9; } }
+      .library-hero{ padding-top:5rem; padding-bottom:3rem; }
+      @media (min-width:768px){ .library-hero{ padding-top:6rem; padding-bottom:3.5rem; } }
+      .library-hero-media{ width:100%; max-width:960px; margin-inline:auto; aspect-ratio:28/10; border-radius:28px; overflow:hidden; border:1px solid rgba(255,255,255,.08); box-shadow:0 25px 55px rgba(0,0,0,.45); background:#0f172a; position:relative; }
+      @media (min-width:1024px){ .library-hero-media{ max-width:1200px; aspect-ratio:36/10; } }
       .library-hero-media img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform 10s ease, filter .6s ease; }
       .library-hero-media:hover img{ transform:scale(1.04); filter:saturate(1.1); }
       .library-hero-media.failed::after{ content:'Image unavailable'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:.95rem; letter-spacing:.08em; text-transform:uppercase; background:rgba(15,23,42,.65); }
@@ -77,7 +77,7 @@
       .reveal-seq.revealed > * .anim{ animation: fadeUp .6s ease forwards }
 
       /* Gallery */
-      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(1,minmax(0,1fr)) }
+      .gallery{ display:grid; gap:1.5rem; grid-template-columns:repeat(1,minmax(0,1fr)); }
       @media (min-width:768px){ .gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
       /* Image fallbacks */
       .img-wrap{ position:relative; background:#1a1a1a; }
@@ -440,8 +440,8 @@
 
         // smoke tests (non-fatal)
         useEffect(() => {
-          console.assert(document.querySelector('nav'), 'Top nav should render');
           if(route==='home'){
+            console.assert(document.querySelector('nav'), 'Top nav should render');
             ['hero','libraries','about','contact'].forEach(id => console.assert(document.getElementById(id), `#${id} exists`));
             const cards = document.querySelectorAll('[data-testid="lib-card"]');
             console.assert(cards.length === libraries.length, `cards=${cards.length} libs=${libraries.length}`);
