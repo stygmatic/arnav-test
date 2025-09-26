@@ -43,11 +43,11 @@
       @keyframes heroCopyReveal { from{opacity:0; transform:translateY(24px); filter:blur(6px);} to{opacity:1; transform:translateY(0); filter:blur(0);} }
       @keyframes heroLetter { 0%{opacity:0; transform:translateY(24px) scale(.96); filter:blur(6px);} 60%{filter:blur(0);} 100%{opacity:1; transform:translateY(0) scale(1);} }
 
-        .hero-scene{ position:relative; width:100%; padding-inline:clamp(.75rem, 3vw, 1.5rem); }
-        .hero-inner{ position:relative; z-index:10; margin:0 auto; width:min(1260px, 100%); display:flex; justify-content:center; align-items:center; }
-        .hero-visual{ position:relative; width:100%; max-width:min(96vw, 1180px); height:min(90vh, 840px); margin:0 auto; border-radius:42px; overflow:hidden; box-shadow:0 45px 90px rgba(0,0,0,.55); background:#0f172a; isolation:isolate; display:flex; align-items:center; justify-content:center; }
-        @media (max-width:640px){ .hero-visual{ height:min(82vh, 620px); border-radius:32px; } }
-        @media (min-width:1280px){ .hero-visual{ max-width:min(94vw, 1320px); height:min(92vh, 880px); border-radius:48px; } }
+        .hero-scene{ position:relative; width:100%; padding-inline:clamp(.5rem, 2.25vw, 1.35rem); }
+        .hero-inner{ position:relative; z-index:10; margin:0 auto; width:100%; display:flex; justify-content:center; align-items:center; }
+        .hero-visual{ position:relative; width:100%; max-width:min(98vw, 1400px); height:min(95vh, 900px); margin:0 auto; border-radius:34px; overflow:hidden; box-shadow:0 45px 110px rgba(0,0,0,.6); background:#0f172a; isolation:isolate; display:flex; align-items:center; justify-content:center; }
+        @media (max-width:640px){ .hero-visual{ height:min(86vh, 640px); border-radius:26px; } }
+        @media (min-width:1536px){ .hero-visual{ max-width:min(97vw, 1580px); height:min(96vh, 960px); border-radius:38px; } }
         .hero-image-layer{ position:absolute; inset:0; background-size:cover; background-position:center center; filter:saturate(1.12); opacity:0; transform:scale(1.05); }
         .hero-image-layer.play{ animation:heroImageReveal 1.4s cubic-bezier(.22,.61,.36,1) forwards; }
         .hero-image-layer.show{ opacity:1; transform:scale(1); filter:none; }
@@ -55,15 +55,15 @@
         .hero-gradient.play{ animation:heroGlowDrift 14s ease-in-out infinite alternate; opacity:.45; }
         .hero-gradient.show{ opacity:.38; }
         .hero-overlay{ position:absolute; inset:0; background:linear-gradient(140deg, rgba(0,0,0,.62), rgba(10,10,10,.8)); backdrop-filter:blur(8px); pointer-events:none; }
-        .hero-copy{ position:relative; z-index:30; text-align:center; display:flex; flex-direction:column; align-items:center; gap:1.4rem; padding:clamp(1.5rem, 4vw, 3rem); color:#f8fafc; }
-        .hero-copy::after{ content:''; position:absolute; inset:0; z-index:-1; backdrop-filter:blur(2px); }
+        .hero-copy{ position:relative; z-index:30; text-align:center; display:flex; flex-direction:column; align-items:center; gap:1.5rem; padding:clamp(1.75rem, 4vw, 3.35rem); color:#f8fafc; }
+        .hero-copy::after{ content:''; position:absolute; inset:-12% -18%; z-index:-1; background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.68), rgba(10,10,10,.4) 45%, transparent 70%); opacity:.55; filter:blur(24px); }
         .hero-copy .intro-heading{ text-shadow:0 25px 60px rgba(0,0,0,.65); }
         .hero-copy .intro-cta{ margin-top:.75rem; }
-      .intro-heading{ color:#fff; font-weight:300; letter-spacing:-.03em; text-shadow:0 25px 60px rgba(0,0,0,.65); }
+      .intro-heading{ color:#fff; font-weight:300; letter-spacing:-.03em; text-shadow:0 30px 70px rgba(0,0,0,.7); font-size:clamp(2.75rem, 6vw, 4.5rem); }
       .intro-letter{ display:inline-block; }
       .intro-letter.play{ animation:heroLetter .7s cubic-bezier(.19,1,.22,1) forwards; }
       .intro-letter.show{ opacity:1 !important; transform:none !important; filter:none !important; }
-      .intro-sub{ color:#e5e5e5; max-width:40rem; margin:1rem auto 0; font-size:clamp(1rem,2vw,1.2rem); opacity:0; transform:translateY(32px) scale(.96); letter-spacing:.35em; filter:blur(6px); text-transform:uppercase; }
+      .intro-sub{ color:#e5e5e5; max-width:42rem; margin:1.1rem auto 0; font-size:clamp(1rem,2.2vw,1.25rem); opacity:0; transform:translateY(32px) scale(.96); letter-spacing:.32em; filter:blur(6px); text-transform:uppercase; }
       .intro-sub.play{ animation:introSubtitleReveal .9s cubic-bezier(.19,1,.22,1) both; animation-delay:.6s; }
       .intro-sub.show{ opacity:1; transform:none; filter:none; letter-spacing:.22em; }
       .intro-cta{ display:inline-flex; align-items:center; gap:.45rem; padding:.5rem 0; border-bottom:1px solid rgba(226,232,240,.35); color:#f8fafc; opacity:0; transform:translateY(36px) scale(.9); transition:color .3s ease, border-color .3s ease; text-transform:uppercase; letter-spacing:.22em; }
@@ -232,6 +232,7 @@
        * Helpers
        * -------------------------------------------------- */
       const SITE_TITLE = 'Arnav Asthana';
+      const HERO_BRAND = 'ARNAV MEDIA';
       const cx = (...xs) => xs.filter(Boolean).join(' ');
 
       function useRevealOnView(deps=[]){
@@ -254,7 +255,7 @@
         const letters = useMemo(() => text.split(''), [text]);
         const nbsp = '\xa0';
         return (
-          <h1 className="intro-heading text-[clamp(2.7rem,6vw,4.8rem)]">
+          <h1 className="intro-heading">
             {letters.map((ch,i) => (
               <span
                 key={i}
@@ -324,7 +325,7 @@
                 <div className={gradientClass} />
                 <div className="hero-overlay" />
                 <div className="hero-copy">
-                  <SplitTitle text={SITE_TITLE} play={play} />
+                  <SplitTitle text={HERO_BRAND} play={play} />
                   <p className={subtitleClass}>{'Photography Portfolio'.toUpperCase()}</p>
                   <a href="#libraries" className={ctaClass} onClick={handleScroll}>
                     <span>View Work</span>
