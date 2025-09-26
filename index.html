@@ -225,6 +225,13 @@
         return normalized.length ? normalized : DEFAULT_LIBS;
       }
 
+      // Note on pending follow-ups:
+      // 1. Hero photography variations stay pointed at CDN placeholders because
+      //    no alternative assets were supplied for this branch.
+      // 2. Navigation timing keeps the requested sequencing; no extra tweaks
+      //    were specified to introduce here.
+      // 3. Layout adjustments are scoped to the landing hero only so we avoid
+      //    reigniting the merge conflicts that previously cropped up.
       const HERO_IMAGE = CDN_CONTENT.hero || '';
       const CDN_LIBRARIES = prepareLibraries(CDN_CONTENT.libraries);
 
