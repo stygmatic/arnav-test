@@ -43,11 +43,11 @@
       @keyframes heroCopyReveal { from{opacity:0; transform:translateY(24px); filter:blur(6px);} to{opacity:1; transform:translateY(0); filter:blur(0);} }
       @keyframes heroLetter { 0%{opacity:0; transform:translateY(24px) scale(.96); filter:blur(6px);} 60%{filter:blur(0);} 100%{opacity:1; transform:translateY(0) scale(1);} }
 
-        .hero-scene{ position:relative; width:100%; padding-inline:1.5rem; }
-        .hero-inner{ position:relative; z-index:10; margin:0 auto; width:min(1100px, 100%); display:flex; justify-content:center; align-items:center; }
-        .hero-visual{ position:relative; width:100%; max-width:min(92vw, 980px); height:min(88vh, 820px); margin:0 auto; border-radius:48px; overflow:hidden; box-shadow:0 45px 90px rgba(0,0,0,.55); background:#0f172a; isolation:isolate; display:flex; align-items:center; justify-content:center; }
-        @media (max-width:640px){ .hero-visual{ height:min(82vh, 620px); border-radius:36px; } }
-        @media (min-width:1280px){ .hero-visual{ max-width:1000px; height:min(90vh, 860px); border-radius:52px; } }
+        .hero-scene{ position:relative; width:100%; padding-inline:clamp(.75rem, 3vw, 1.5rem); }
+        .hero-inner{ position:relative; z-index:10; margin:0 auto; width:min(1260px, 100%); display:flex; justify-content:center; align-items:center; }
+        .hero-visual{ position:relative; width:100%; max-width:min(96vw, 1180px); height:min(90vh, 840px); margin:0 auto; border-radius:42px; overflow:hidden; box-shadow:0 45px 90px rgba(0,0,0,.55); background:#0f172a; isolation:isolate; display:flex; align-items:center; justify-content:center; }
+        @media (max-width:640px){ .hero-visual{ height:min(82vh, 620px); border-radius:32px; } }
+        @media (min-width:1280px){ .hero-visual{ max-width:min(94vw, 1320px); height:min(92vh, 880px); border-radius:48px; } }
         .hero-image-layer{ position:absolute; inset:0; background-size:cover; background-position:center center; filter:saturate(1.12); opacity:0; transform:scale(1.05); }
         .hero-image-layer.play{ animation:heroImageReveal 1.4s cubic-bezier(.22,.61,.36,1) forwards; }
         .hero-image-layer.show{ opacity:1; transform:scale(1); filter:none; }
